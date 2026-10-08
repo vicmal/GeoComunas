@@ -1,0 +1,812 @@
+{
+  "app": "GeoComunas",
+  "bloque_comun": "Todas las categorías heredan: responsable (texto, por defecto el de Ajustes), fecha_captura (automática), observaciones (texto libre), fotos (mínimo 1 OBLIGATORIA: constancia de la visita), precision_gps_m (automática del GPS).",
+  "categorias": [
+    {
+      "campos": [
+        {
+          "ayuda": "Formato EE-MM-PP-NNNN. Ej.: 13-08-01-0003",
+          "etiqueta": "Código de la comuna",
+          "nombre": "cod_comuna",
+          "obligatorio": true,
+          "regex": "^13-\\d{2}-\\d{2}-\\d{4}$",
+          "tipo": "codigo"
+        },
+        {
+          "etiqueta": "Nombre de la comuna",
+          "nombre": "nombre",
+          "obligatorio": true,
+          "tipo": "texto"
+        },
+        {
+          "etiqueta": "Fecha de registro",
+          "nombre": "fecha_registro",
+          "obligatorio": true,
+          "por_defecto": "hoy",
+          "tipo": "fecha"
+        },
+        {
+          "etiqueta": "Municipio",
+          "nombre": "cod_municipio",
+          "obligatorio": true,
+          "tipo": "lista_municipios"
+        },
+        {
+          "ayuda": "6 dígitos. Opcional en campo.",
+          "etiqueta": "Código de parroquia",
+          "nombre": "cod_parroquia",
+          "obligatorio": false,
+          "tipo": "texto"
+        },
+        {
+          "etiqueta": "N.º de consejos comunales",
+          "min": 0,
+          "nombre": "nro_consejos",
+          "obligatorio": false,
+          "tipo": "entero"
+        },
+        {
+          "etiqueta": "N.º de voceros",
+          "min": 0,
+          "nombre": "nro_voceros",
+          "obligatorio": false,
+          "tipo": "entero"
+        },
+        {
+          "ayuda": "Si se dispone del dato en campo; si no, lo completa oficina.",
+          "etiqueta": "Hogares",
+          "min": 0,
+          "nombre": "hogares",
+          "obligatorio": false,
+          "tipo": "entero"
+        },
+        {
+          "ayuda": "Estimación de campo. La población votante (18+) es dato de OFICINA y se une por cod_comuna.",
+          "etiqueta": "Población estimada",
+          "min": 0,
+          "nombre": "poblacion",
+          "obligatorio": false,
+          "tipo": "entero"
+        },
+        {
+          "etiqueta": "NBI %",
+          "max": 100,
+          "min": 0,
+          "nombre": "nbi_pct",
+          "obligatorio": false,
+          "tipo": "decimal"
+        },
+        {
+          "etiqueta": "Acceso a agua %",
+          "max": 100,
+          "min": 0,
+          "nombre": "agua_pct",
+          "obligatorio": false,
+          "tipo": "decimal"
+        },
+        {
+          "etiqueta": "Acceso a electricidad %",
+          "max": 100,
+          "min": 0,
+          "nombre": "elec_pct",
+          "obligatorio": false,
+          "tipo": "decimal"
+        },
+        {
+          "etiqueta": "Analfabetismo %",
+          "max": 100,
+          "min": 0,
+          "nombre": "analf_pct",
+          "obligatorio": false,
+          "tipo": "decimal"
+        },
+        {
+          "auto": "area_poligono_ha",
+          "ayuda": "Calculada por la app desde el polígono. No se digita.",
+          "etiqueta": "Superficie (ha)",
+          "nombre": "superficie_ha",
+          "obligatorio": false,
+          "tipo": "decimal"
+        }
+      ],
+      "color_mapa": "#2563eb",
+      "etiqueta": "Comuna",
+      "geometria": "poligono",
+      "icono": "<svg class='ic' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M3 11.5 12 4l9 7.5'/><path d='M5.5 10.3V20h13v-9.7'/><path d='M10 20v-5h4v5'/></svg>",
+      "id": "comuna",
+      "pestanas": [
+        "Datos",
+        "Geometría",
+        "Fotos"
+      ],
+      "tabla_destino": "com.comuna"
+    },
+    {
+      "campos": [
+        {
+          "ayuda": "Ej.: 13-08-01-0003-CC-02",
+          "etiqueta": "Código del consejo",
+          "nombre": "cod_consejo",
+          "obligatorio": true,
+          "regex": "^13-\\d{2}-\\d{2}-\\d{4}-CC-\\d{2}$",
+          "tipo": "codigo"
+        },
+        {
+          "ayuda": "Código de la comuna padre (clave de unión).",
+          "etiqueta": "Comuna a la que pertenece",
+          "nombre": "cod_comuna",
+          "obligatorio": true,
+          "regex": "^13-\\d{2}-\\d{2}-\\d{4}$",
+          "tipo": "texto"
+        },
+        {
+          "etiqueta": "Nombre del consejo comunal",
+          "nombre": "nombre",
+          "obligatorio": true,
+          "tipo": "texto"
+        },
+        {
+          "etiqueta": "N.º de familias",
+          "min": 0,
+          "nombre": "nro_familias",
+          "obligatorio": false,
+          "tipo": "entero"
+        },
+        {
+          "etiqueta": "Vocerías activas",
+          "min": 0,
+          "nombre": "vocerias_activas",
+          "obligatorio": false,
+          "tipo": "entero"
+        }
+      ],
+      "color_mapa": "#7c3aed",
+      "etiqueta": "Consejo comunal",
+      "geometria": "poligono",
+      "icono": "<svg class='ic' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M9 11a3.2 3.2 0 1 0 0-6.4A3.2 3.2 0 0 0 9 11z'/><path d='M3.5 20c.6-3.4 2.8-5.4 5.5-5.4s4.9 2 5.5 5.4'/><path d='M16.5 11.5a2.6 2.6 0 1 0 0-5.2 2.6 2.6 0 0 0 0 5.2z'/><path d='M15.8 14.9c2.7.3 4.1 2 4.7 4.3'/></svg>",
+      "id": "consejo_comunal",
+      "pestanas": [
+        "Datos",
+        "Geometría",
+        "Fotos"
+      ],
+      "tabla_destino": "com.consejo_comunal"
+    },
+    {
+      "campos": [
+        {
+          "ayuda": "Ej.: 13-08-01-0003-LT-004",
+          "etiqueta": "Código del lote",
+          "nombre": "cod_lote",
+          "obligatorio": true,
+          "regex": "^13-\\d{2}-\\d{2}-\\d{4}-LT-\\d{3}$",
+          "tipo": "codigo"
+        },
+        {
+          "etiqueta": "Comuna",
+          "nombre": "cod_comuna",
+          "obligatorio": true,
+          "regex": "^13-\\d{2}-\\d{2}-\\d{4}$",
+          "tipo": "texto"
+        },
+        {
+          "dominio": [
+            "maiz",
+            "caraota",
+            "frijol"
+          ],
+          "etiqueta": "Rubro",
+          "etiquetas": {
+            "caraota": "Caraota",
+            "frijol": "Frijol",
+            "maiz": "Maíz"
+          },
+          "nombre": "rubro",
+          "obligatorio": true,
+          "tipo": "lista"
+        },
+        {
+          "ayuda": "Ej.: 2026",
+          "etiqueta": "Ciclo agrícola",
+          "nombre": "ciclo",
+          "obligatorio": true,
+          "por_defecto": "2026",
+          "tipo": "texto"
+        },
+        {
+          "auto": "area_poligono_ha",
+          "ayuda": "Se sugiere el área medida del polígono; ajústela si difiere.",
+          "etiqueta": "Hectáreas planificadas",
+          "min": 0,
+          "nombre": "ha_planificadas",
+          "obligatorio": true,
+          "tipo": "decimal"
+        },
+        {
+          "etiqueta": "Hectáreas sembradas",
+          "min": 0,
+          "nombre": "ha_sembradas",
+          "obligatorio": false,
+          "tipo": "decimal"
+        },
+        {
+          "etiqueta": "Hectáreas cosechadas",
+          "min": 0,
+          "nombre": "ha_cosechadas",
+          "obligatorio": false,
+          "tipo": "decimal"
+        },
+        {
+          "etiqueta": "Rendimiento (t/ha)",
+          "min": 0,
+          "nombre": "rendimiento_t_ha",
+          "obligatorio": false,
+          "tipo": "decimal"
+        },
+        {
+          "dominio": [
+            "planificado",
+            "sembrado",
+            "cosechado",
+            "perdido"
+          ],
+          "etiqueta": "Estado del lote",
+          "etiquetas": {
+            "cosechado": "Cosechado",
+            "perdido": "Perdido",
+            "planificado": "Planificado",
+            "sembrado": "Sembrado"
+          },
+          "nombre": "estado",
+          "obligatorio": true,
+          "por_defecto": "planificado",
+          "tipo": "lista"
+        },
+        {
+          "etiqueta": "Fecha de siembra",
+          "nombre": "fecha_siembra",
+          "obligatorio": false,
+          "tipo": "fecha"
+        },
+        {
+          "etiqueta": "Fecha de cosecha",
+          "nombre": "fecha_cosecha",
+          "obligatorio": false,
+          "tipo": "fecha"
+        }
+      ],
+      "color_mapa": "#4d7c0f",
+      "etiqueta": "Lote de siembra",
+      "geometria": "poligono",
+      "icono": "<svg class='ic' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21V9'/><path d='M12 9C9.5 9 8 7.2 8 4.5 10.5 4.5 12 6 12 9z'/><path d='M12 9c2.5 0 4-1.8 4-4.5C13.5 4.5 12 6 12 9z'/><path d='M12 13.5c-2.5 0-4-1.8-4-4.5 2.5 0 4 1.5 4 4.5z'/><path d='M12 13.5c2.5 0 4-1.8 4-4.5-2.5 0-4 1.5-4 4.5z'/><path d='M12 18c-2.5 0-4-1.8-4-4.5 2.5 0 4 1.5 4 4.5z'/><path d='M12 18c2.5 0 4-1.8 4-4.5-2.5 0-4 1.5-4 4.5z'/></svg>",
+      "id": "lote_siembra",
+      "pestanas": [
+        "Datos",
+        "Geometría",
+        "Fotos"
+      ],
+      "tabla_destino": "agr.lote_siembra"
+    },
+    {
+      "campos": [
+        {
+          "ayuda": "Ej.: 13-08-01-0003-PY-012",
+          "etiqueta": "Código del proyecto",
+          "nombre": "cod_proyecto",
+          "obligatorio": true,
+          "regex": "^13-\\d{2}-\\d{2}-\\d{4}-PY-\\d{3}$",
+          "tipo": "codigo"
+        },
+        {
+          "etiqueta": "Comuna",
+          "nombre": "cod_comuna",
+          "obligatorio": true,
+          "regex": "^13-\\d{2}-\\d{2}-\\d{4}$",
+          "tipo": "texto"
+        },
+        {
+          "ayuda": "Ej.: 2026-I",
+          "etiqueta": "Código de consulta",
+          "nombre": "cod_consulta",
+          "obligatorio": true,
+          "tipo": "texto"
+        },
+        {
+          "dominio": [
+            "SP",
+            "VI",
+            "SA",
+            "ED",
+            "DC",
+            "PR",
+            "AU"
+          ],
+          "etiqueta": "Tipo de obra",
+          "etiquetas": {
+            "AU": "AU · Agricultura urbana",
+            "DC": "DC · Deporte y cultura",
+            "ED": "ED · Educación",
+            "PR": "PR · Socioproductivo",
+            "SA": "SA · Salud",
+            "SP": "SP · Servicios públicos",
+            "VI": "VI · Vialidad"
+          },
+          "nombre": "tipo",
+          "obligatorio": true,
+          "tipo": "lista"
+        },
+        {
+          "etiqueta": "Nombre del proyecto",
+          "nombre": "nombre",
+          "obligatorio": true,
+          "tipo": "texto"
+        },
+        {
+          "etiqueta": "Monto solicitado (USD)",
+          "min": 0,
+          "nombre": "monto_solicitado_usd",
+          "obligatorio": true,
+          "tipo": "decimal"
+        },
+        {
+          "etiqueta": "Monto ejecutado (USD)",
+          "min": 0,
+          "nombre": "monto_ejecutado_usd",
+          "obligatorio": false,
+          "tipo": "decimal"
+        },
+        {
+          "dominio": [
+            "por_iniciar",
+            "en_ejecucion",
+            "paralizado",
+            "culminado"
+          ],
+          "etiqueta": "Estado",
+          "etiquetas": {
+            "culminado": "Culminado",
+            "en_ejecucion": "En ejecución",
+            "paralizado": "Paralizado",
+            "por_iniciar": "Por iniciar"
+          },
+          "nombre": "estado",
+          "obligatorio": true,
+          "por_defecto": "por_iniciar",
+          "tipo": "lista"
+        },
+        {
+          "etiqueta": "Avance físico %",
+          "max": 100,
+          "min": 0,
+          "nombre": "avance_fisico_pct",
+          "obligatorio": false,
+          "tipo": "decimal"
+        },
+        {
+          "etiqueta": "Avance financiero %",
+          "max": 100,
+          "min": 0,
+          "nombre": "avance_financiero_pct",
+          "obligatorio": false,
+          "tipo": "decimal"
+        },
+        {
+          "etiqueta": "Fecha de inicio",
+          "nombre": "fecha_inicio",
+          "obligatorio": false,
+          "tipo": "fecha"
+        },
+        {
+          "etiqueta": "Fecha fin prevista",
+          "nombre": "fecha_fin_prevista",
+          "obligatorio": false,
+          "tipo": "fecha"
+        },
+        {
+          "dominio": [
+            "consejo_comunal",
+            "EPS",
+            "contratista",
+            "alcaldia_gobernacion"
+          ],
+          "etiqueta": "Ejecutor",
+          "etiquetas": {
+            "EPS": "EPS",
+            "alcaldia_gobernacion": "Alcaldía / Gobernación",
+            "consejo_comunal": "Consejo comunal",
+            "contratista": "Contratista"
+          },
+          "nombre": "ejecutor",
+          "obligatorio": false,
+          "tipo": "lista"
+        },
+        {
+          "etiqueta": "Beneficiarios",
+          "min": 0,
+          "nombre": "beneficiarios",
+          "obligatorio": false,
+          "tipo": "entero"
+        }
+      ],
+      "color_mapa": "#dc2626",
+      "etiqueta": "Proyecto / obra",
+      "geometria": "punto",
+      "icono": "<svg class='ic' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M7 21V7'/><path d='M4 7h16'/><path d='M7 7 5 4h4l-2 3z'/><path d='M18 7v5'/><path d='M16.3 12h3.4v3h-3.4z'/><path d='M18 15v3'/><path d='M4.5 21h5'/></svg>",
+      "id": "proyecto",
+      "pestanas": [
+        "Datos",
+        "Geometría",
+        "Fotos"
+      ],
+      "tabla_destino": "py.proyecto"
+    },
+    {
+      "campos": [
+        {
+          "ayuda": "Ej.: 13-08-01-0003-UE-007",
+          "etiqueta": "Código de la unidad",
+          "nombre": "cod_unidad",
+          "obligatorio": true,
+          "regex": "^13-\\d{2}-\\d{2}-\\d{4}-UE-\\d{3}$",
+          "tipo": "codigo"
+        },
+        {
+          "etiqueta": "Comuna",
+          "nombre": "cod_comuna",
+          "obligatorio": true,
+          "regex": "^13-\\d{2}-\\d{2}-\\d{4}$",
+          "tipo": "texto"
+        },
+        {
+          "dominio": [
+            "planta",
+            "acopio",
+            "cultivo",
+            "bloquera",
+            "panaderia",
+            "taller_mec",
+            "taller_tex"
+          ],
+          "etiqueta": "Tipo de unidad",
+          "etiquetas": {
+            "acopio": "Centro de acopio",
+            "bloquera": "Bloquera",
+            "cultivo": "Unidad de cultivo",
+            "panaderia": "Panadería",
+            "planta": "Planta",
+            "taller_mec": "Taller mecánico",
+            "taller_tex": "Taller textil"
+          },
+          "nombre": "tipo",
+          "obligatorio": true,
+          "tipo": "lista"
+        },
+        {
+          "etiqueta": "Nombre de la unidad",
+          "nombre": "nombre",
+          "obligatorio": true,
+          "tipo": "texto"
+        },
+        {
+          "etiqueta": "Inversión (USD)",
+          "min": 0,
+          "nombre": "inversion_usd",
+          "obligatorio": false,
+          "tipo": "decimal"
+        },
+        {
+          "etiqueta": "Empleos directos",
+          "min": 0,
+          "nombre": "empleos_directos",
+          "obligatorio": false,
+          "tipo": "entero"
+        },
+        {
+          "dominio": [
+            "en_proyecto",
+            "en_instalacion",
+            "operativa",
+            "paralizada"
+          ],
+          "etiqueta": "Estado",
+          "etiquetas": {
+            "en_instalacion": "En instalación",
+            "en_proyecto": "En proyecto",
+            "operativa": "Operativa",
+            "paralizada": "Paralizada"
+          },
+          "nombre": "estado",
+          "obligatorio": true,
+          "tipo": "lista"
+        },
+        {
+          "ayuda": "Opcional. Formato: 13-08-01-0003-BC-01",
+          "etiqueta": "Banco comunal financiador",
+          "nombre": "cod_banco",
+          "obligatorio": false,
+          "regex": "^13-\\d{2}-\\d{2}-\\d{4}-BC-\\d{2}$",
+          "tipo": "texto"
+        }
+      ],
+      "color_mapa": "#d97706",
+      "etiqueta": "Unidad económica",
+      "geometria": "punto",
+      "icono": "<svg class='ic' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M4 21V9.5l6 3.8V9.5l6 3.8V4'/><path d='M2.5 21h19'/><path d='M16 4v5.3'/></svg>",
+      "id": "unidad_economica",
+      "pestanas": [
+        "Datos",
+        "Geometría",
+        "Fotos"
+      ],
+      "tabla_destino": "eco.unidad_economica"
+    },
+    {
+      "campos": [
+        {
+          "ayuda": "Ej.: 13-08-01-0003-BC-01",
+          "etiqueta": "Código del banco",
+          "nombre": "cod_banco",
+          "obligatorio": true,
+          "regex": "^13-\\d{2}-\\d{2}-\\d{4}-BC-\\d{2}$",
+          "tipo": "codigo"
+        },
+        {
+          "etiqueta": "Comuna sede",
+          "nombre": "cod_comuna",
+          "obligatorio": true,
+          "regex": "^13-\\d{2}-\\d{2}-\\d{4}$",
+          "tipo": "texto"
+        },
+        {
+          "etiqueta": "Nombre del banco comunal",
+          "nombre": "nombre",
+          "obligatorio": true,
+          "tipo": "texto"
+        }
+      ],
+      "color_mapa": "#0d9488",
+      "etiqueta": "Banco comunal",
+      "geometria": "punto",
+      "icono": "<svg class='ic' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M3 9.5 12 4l9 5.5'/><path d='M5 12.5h14'/><path d='M6.8 12.5V18M10.3 12.5V18M13.7 12.5V18M17.2 12.5V18'/><path d='M4.5 21h15'/><path d='M6.8 18v3M17.2 18v3'/></svg>",
+      "id": "banco_comunal",
+      "pestanas": [
+        "Datos",
+        "Geometría",
+        "Fotos"
+      ],
+      "tabla_destino": "com.banco_comunal"
+    },
+    {
+      "campos": [
+        {
+          "auto": "codigo_reporte",
+          "ayuda": "Se genera solo: RPT-AAAAMMDD-NNNNN",
+          "etiqueta": "Código del reporte",
+          "nombre": "cod_reporte",
+          "obligatorio": true,
+          "tipo": "codigo"
+        },
+        {
+          "etiqueta": "Comuna",
+          "nombre": "cod_comuna",
+          "obligatorio": true,
+          "regex": "^13-\\d{2}-\\d{2}-\\d{4}$",
+          "tipo": "texto"
+        },
+        {
+          "dominio": [
+            "agua",
+            "vialidad",
+            "electricidad",
+            "salud",
+            "educacion",
+            "vivienda",
+            "otro"
+          ],
+          "etiqueta": "Tipo de problema",
+          "etiquetas": {
+            "agua": "Agua",
+            "educacion": "Educación",
+            "electricidad": "Electricidad",
+            "otro": "Otro",
+            "salud": "Salud",
+            "vialidad": "Vialidad",
+            "vivienda": "Vivienda"
+          },
+          "nombre": "tipo_problema",
+          "obligatorio": true,
+          "tipo": "lista"
+        },
+        {
+          "etiqueta": "Descripción del problema",
+          "nombre": "descripcion",
+          "obligatorio": true,
+          "tipo": "texto"
+        },
+        {
+          "etiqueta": "Fecha del reporte",
+          "nombre": "fecha_reporte",
+          "obligatorio": true,
+          "por_defecto": "hoy",
+          "tipo": "fecha"
+        },
+        {
+          "dominio": [
+            "pendiente",
+            "en_atencion",
+            "resuelto"
+          ],
+          "etiqueta": "Estado de atención",
+          "etiquetas": {
+            "en_atencion": "En atención",
+            "pendiente": "Pendiente",
+            "resuelto": "Resuelto"
+          },
+          "nombre": "estado_atencion",
+          "obligatorio": true,
+          "por_defecto": "pendiente",
+          "tipo": "lista"
+        }
+      ],
+      "color_mapa": "#db2777",
+      "etiqueta": "Reporte 1×10",
+      "geometria": "punto",
+      "icono": "<svg class='ic' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M6 4.5h12a1.5 1.5 0 0 1 1.5 1.5V20a1.5 1.5 0 0 1-1.5 1.5H6A1.5 1.5 0 0 1 4.5 20V6A1.5 1.5 0 0 1 6 4.5z'/><path d='M9 4.5V3h6v1.5'/><path d='M9 2.8h6'/><path d='M9.3 10.5h5.4M9.3 14h5.4M9.3 17.5h3'/></svg>",
+      "id": "reporte_1x10",
+      "pestanas": [
+        "Datos",
+        "Geometría",
+        "Fotos"
+      ],
+      "tabla_destino": "py.reporte_1x10"
+    },
+    {
+      "campos": [
+        {
+          "ayuda": "Proyecto al que corresponde este avance.",
+          "etiqueta": "Código del proyecto",
+          "nombre": "cod_proyecto",
+          "obligatorio": true,
+          "regex": "^13-\\d{2}-\\d{2}-\\d{4}-PY-\\d{3}$",
+          "tipo": "texto"
+        },
+        {
+          "etiqueta": "Fecha del reporte",
+          "nombre": "fecha",
+          "obligatorio": true,
+          "por_defecto": "hoy",
+          "tipo": "fecha"
+        },
+        {
+          "etiqueta": "Avance físico %",
+          "max": 100,
+          "min": 0,
+          "nombre": "avance_fisico_pct",
+          "obligatorio": true,
+          "tipo": "decimal"
+        },
+        {
+          "etiqueta": "Avance financiero %",
+          "max": 100,
+          "min": 0,
+          "nombre": "avance_financiero_pct",
+          "obligatorio": true,
+          "tipo": "decimal"
+        }
+      ],
+      "color_mapa": "#475569",
+      "etiqueta": "Avance de obra",
+      "geometria": "ninguna",
+      "icono": "<svg class='ic' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M4 4v15.5h16'/><path d='M7.5 15.5l4-4.5 2.8 2.8 4.7-5.8'/><path d='M15.4 8h3.6v3.6'/></svg>",
+      "id": "avance_obra",
+      "pestanas": [
+        "Datos",
+        "Fotos"
+      ],
+      "tabla_destino": "py.avance_obra"
+    },
+    {
+      "campos": [
+        {
+          "ayuda": "Propuesta v1. Ej.: 13-08-01-0003-CV-01",
+          "etiqueta": "Código del centro",
+          "nombre": "cod_centro",
+          "obligatorio": true,
+          "regex": "^13-\\d{2}-\\d{2}-\\d{4}-CV-\\d{2}$",
+          "tipo": "codigo"
+        },
+        {
+          "etiqueta": "Nombre del centro de votación",
+          "nombre": "nombre",
+          "obligatorio": true,
+          "tipo": "texto"
+        },
+        {
+          "ayuda": "Clave de unión con la población votante (dato de oficina).",
+          "etiqueta": "Comuna a la que sirve",
+          "nombre": "cod_comuna",
+          "obligatorio": true,
+          "regex": "^13-\\d{2}-\\d{2}-\\d{4}$",
+          "tipo": "texto"
+        },
+        {
+          "ayuda": "Ej.: Escuela Bolivariana El Porvenir, vía principal.",
+          "etiqueta": "Dirección / referencia",
+          "nombre": "direccion_referencia",
+          "obligatorio": false,
+          "tipo": "texto"
+        }
+      ],
+      "color_mapa": "#1d4ed8",
+      "etiqueta": "Centro de votación",
+      "geometria": "punto",
+      "icono": "<svg class='ic' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M4 11a1.5 1.5 0 0 1 1.5-1.5h13A1.5 1.5 0 0 1 20 11v8a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 19z'/><path d='M5.5 9.5 7 5h10l1.5 4.5'/><path d='M10.2 6.2 9.3 9.5h5.4l-.9-3.3'/><path d='M9.3 15.2l2 2 3.6-4.2'/></svg>",
+      "id": "centro_votacion",
+      "pestanas": [
+        "Datos",
+        "Geometría",
+        "Fotos"
+      ],
+      "tabla_destino": "ref.centro_votacion",
+      "tabla_destino_nota": "PROPUESTA v1: el modelo de datos no define esta tabla. Se propone ref.centro_votacion(cod_centro PK, cod_comuna FK, nombre, geom POINT 2203). La población votante (18+) es dato de OFICINA y se une por cod_comuna."
+    }
+  ],
+  "crs_intercambio_nota": "La geometría de exportación GeoJSON va en EPSG:2203 (UTM 20N, REGVEN). Decisión del usuario 2026-10-08.",
+  "crs_produccion": "EPSG:2203",
+  "municipios": [
+    {
+      "codigo": "1301",
+      "nombre": "Acosta"
+    },
+    {
+      "codigo": "1302",
+      "nombre": "Aguasay"
+    },
+    {
+      "codigo": "1303",
+      "nombre": "Bolívar"
+    },
+    {
+      "codigo": "1304",
+      "nombre": "Caripe"
+    },
+    {
+      "codigo": "1305",
+      "nombre": "Cedeño"
+    },
+    {
+      "codigo": "1306",
+      "nombre": "Ezequiel Zamora"
+    },
+    {
+      "codigo": "1307",
+      "nombre": "Libertador"
+    },
+    {
+      "codigo": "1308",
+      "nombre": "Maturín"
+    },
+    {
+      "codigo": "1309",
+      "nombre": "Piar"
+    },
+    {
+      "codigo": "1310",
+      "nombre": "Punceres"
+    },
+    {
+      "codigo": "1311",
+      "nombre": "Santa Bárbara"
+    },
+    {
+      "codigo": "1312",
+      "nombre": "Sotillo"
+    },
+    {
+      "codigo": "1313",
+      "nombre": "Uracoa"
+    }
+  ],
+  "nota_municipios": "Códigos 1301-1313 en orden alfabético (Acosta→Uracoa). VERIFICAR contra la codificación oficial INE antes de uso en producción.",
+  "version": "1.0"
+}

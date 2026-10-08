@@ -1,0 +1,1272 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0f4c81">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="color-scheme" content="dark">
+<meta name="description" content="GeoComunas — Captura de datos de campo para el SIG de las Comunas de Monagas. Formularios por categoría, GPS, fotos, GeoJSON EPSG:2203, trabajo sin conexión.">
+<title>GeoComunas · Captura de campo</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="lib/leaflet.css">
+<style>
+:root{
+  --bg:#10151b; --panel:#1a212b; --panel2:#222b36; --panel3:#2a3442;
+  --line:#33405200; --line2:#3a4757; --ink:#eef3f8; --muted:#9fb0c3;
+  --pri:#1d6fb8; --pri2:#0f4c81; --ok:#22c55e; --warn:#f59e0b; --bad:#ef4444;
+  --radius:12px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{font-family:"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink);font-size:15px;line-height:1.45;max-width:900px;margin:0 auto;min-height:100vh}
+.screen{display:none;padding:14px 14px 90px}
+.screen.active{display:block}
+h1{font-size:22px;margin:6px 0 2px}
+h2{font-size:18px;margin:14px 0 8px;color:#cfe3f5}
+.sub{color:var(--muted);font-size:13px;margin-bottom:12px}
+.card{background:var(--panel);border:1px solid var(--line2);border-radius:var(--radius);padding:14px;margin-bottom:12px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--line2);background:var(--panel2);color:var(--ink);padding:13px 16px;border-radius:10px;cursor:pointer;font-size:15.5px;font-weight:650;min-height:52px;width:100%;margin:6px 0;font-family:inherit}
+.btn:active{transform:scale(.98)}
+.btn.pri{background:var(--pri);border-color:var(--pri)}
+.btn.ok{background:#15803d;border-color:#15803d}
+.btn.warnb{background:#92400e;border-color:#92400e}
+.btn.ghost{background:transparent}
+.btn.sm{width:auto;min-height:44px;padding:8px 14px;font-size:14px;margin:4px 6px 4px 0}
+.btnrow{display:flex;flex-wrap:wrap;gap:2px}
+input,select,textarea{width:100%;background:#0e141b;border:1px solid var(--line2);color:var(--ink);border-radius:8px;padding:12px;font-size:15.5px;margin:4px 0 10px;font-family:inherit}
+textarea{min-height:84px;resize:vertical}
+label.f{display:block;font-size:13.5px;color:var(--muted);margin-top:8px}
+label.f b{color:var(--ink);font-weight:600}
+.req{color:var(--bad);font-weight:700}
+.hint{font-size:12.5px;color:var(--muted);margin:-6px 0 8px}
+.ferr{font-size:12.5px;color:var(--bad);margin:-6px 0 8px;display:none}
+input.bad{border-color:var(--bad)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:560px){.grid2{grid-template-columns:1fr}}
+.plantilla td input{margin:2px 0;padding:9px;font-size:15px}
+.plantilla td input.bad{border-color:var(--bad)}
+.ic{width:22px;height:22px;vertical-align:-4px;flex:none}
+.catcard .t .ic{width:28px;height:28px;vertical-align:-7px;margin-right:4px}
+.foot .i .ic{width:21px;height:21px;vertical-align:-4px}
+.hero .mark .ic{width:30px;height:30px;vertical-align:-6px}
+.catgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:560px){.catgrid{grid-template-columns:1fr}}
+.catcard{background:var(--panel);border:1px solid var(--line2);border-left:6px solid var(--pri);border-radius:var(--radius);padding:14px;cursor:pointer;min-height:76px}
+.catcard:active{transform:scale(.98)}
+.catcard .t{font-weight:700;font-size:16px}
+.catcard .d{font-size:12.5px;color:var(--muted);margin-top:2px}
+.tabs{display:flex;gap:6px;margin:10px 0;position:sticky;top:0;background:var(--bg);padding:8px 0;z-index:5}
+.tabs button{flex:1;border:1px solid var(--line2);background:var(--panel2);color:var(--ink);padding:11px 4px;border-radius:8px;font-size:14px;font-weight:650;cursor:pointer;font-family:inherit}
+.tabs button.active{background:var(--pri);border-color:var(--pri)}
+.tabpage{display:none}.tabpage.active{display:block}
+#formMap,#tileMap,#galMap{height:46vh;min-height:300px;border-radius:var(--radius);border:1px solid var(--line2);z-index:1}
+.status{padding:10px 12px;border-radius:8px;background:var(--panel2);font-size:13.5px;margin:8px 0;min-height:20px}
+.status.err{background:#3b1116;color:#fecaca}
+.status.locked{background:#0e2f1d;color:#bbf7d0}
+.qtag{font-size:11.5px;font-weight:700;padding:1px 8px;border-radius:10px;background:#334155;color:#e2e8f0}
+.q-excellent{background:#15803d}.q-good{background:#1d6fb8}.q-fair{background:#b45309}.q-poor{background:#b91c1c}
+.ptlist{max-height:180px;overflow-y:auto;font-size:13px;background:#0e141b;border-radius:8px;padding:8px;margin:6px 0}
+.ptlist div{padding:3px 0;border-bottom:1px solid #1e293b}
+.pt-idx{font-weight:700;color:#7dd3fc}
+.galitem{background:var(--panel);border:1px solid var(--line2);border-radius:var(--radius);padding:12px;margin-bottom:10px}
+.galitem .h{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.galitem .code{font-weight:700;font-size:15.5px}
+.galitem .meta{font-size:12.5px;color:var(--muted);margin:4px 0}
+.badge{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px;background:#334155}
+.badge.env{background:#14532d}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.toolbar input,.toolbar select{margin:0}
+.thumbs{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+.thumb{position:relative;width:96px;height:96px;border-radius:8px;overflow:hidden;border:1px solid var(--line2)}
+.thumb img{width:100%;height:100%;object-fit:cover}
+.thumb button{position:absolute;top:2px;right:2px;background:rgba(0,0,0,.65);color:#fff;border:0;border-radius:50%;width:26px;height:26px;font-size:14px;cursor:pointer}
+.progress{height:14px;background:#0e141b;border-radius:7px;overflow:hidden;margin:8px 0}
+.progress>i{display:block;height:100%;background:var(--pri);width:0%}
+table.dt{width:100%;border-collapse:collapse;font-size:13px}
+table.dt th{text-align:left;padding:6px;border-bottom:1px solid var(--line2);color:var(--muted);font-weight:600}
+table.dt td{padding:6px;border-bottom:1px solid #1e293b;vertical-align:top}
+table.dt td.n{text-align:right;font-variant-numeric:tabular-nums}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;font-size:13.5px;margin:6px 0}
+.kv dt{color:var(--muted)}.kv dd{margin:0;word-break:break-word}
+.topbar{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.topbar .back{background:var(--panel2);border:1px solid var(--line2);color:var(--ink);border-radius:8px;min-width:44px;min-height:44px;font-size:18px;cursor:pointer}
+.logo{display:flex;align-items:center;gap:10px}
+.logo .mark{font-size:30px}
+.foot{position:fixed;bottom:0;left:0;right:0;background:#0b1016;border-top:1px solid var(--line2);display:flex;justify-content:center;gap:2px;padding:6px;z-index:50;max-width:900px;margin:0 auto}
+.foot button{flex:1;background:none;border:0;color:var(--muted);font-size:11px;padding:8px 2px;cursor:pointer;font-family:inherit}
+.foot button.active{color:#7dd3fc}
+.foot button .i{font-size:20px;display:block}
+details.help{margin:8px 0;font-size:13px;color:var(--muted)}
+details.help summary{cursor:pointer;color:#7dd3fc;font-weight:600}
+.hero{background:linear-gradient(135deg,#0f4c81,#14532d);border-radius:var(--radius);padding:18px;margin-bottom:12px}
+.hero h1{margin:0}.hero p{margin:6px 0 0;color:#dbeafe;font-size:13.5px}
+.herosub{text-align:center;text-transform:uppercase;font-size:12.5px;opacity:.85;letter-spacing:.06em;margin-top:8px}
+.offline-pill{display:inline-block;background:#14532d;color:#bbf7d0;font-size:11.5px;font-weight:700;padding:3px 10px;border-radius:12px;margin-top:6px}
+/* ---------- Portada v2 ---------- */
+@font-face{font-family:'IM Fell English';font-style:normal;font-weight:400;src:url('assets/IMFellEnglish-Regular.woff2') format('woff2');font-display:swap}
+@font-face{font-family:'IM Fell English';font-style:italic;font-weight:400;src:url('assets/IMFellEnglish-Italic.woff2') format('woff2');font-display:swap}
+#screenPortada{min-height:100vh;min-height:100dvh;display:none;flex-direction:column;align-items:center;text-align:center;padding:26px 22px 34px}
+#screenPortada.active{display:flex}
+.sello{height:15vh;min-height:96px;max-width:72vw;object-fit:contain;margin-top:1vh}
+.portada-main{flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;width:100%;padding:12px 0}
+.portada-nombre{font-size:44px;font-weight:800;letter-spacing:.04em;margin:0}
+.portada-intro{color:var(--muted);font-size:14.5px;max-width:46ch;margin:14px 0 0}
+.cita{font-family:'IM Fell English',Georgia,'Times New Roman',serif;font-style:italic;font-size:24px;line-height:1.55;margin:20px 0 4px;color:#f3e9c8}
+.cita-autor{font-size:13px;color:var(--muted)}
+#btnStart{font-size:18px;min-height:60px;max-width:420px}
+.verpill{font-size:11px;color:var(--muted);border:1px solid var(--line2);border-radius:10px;padding:2px 10px;margin-top:10px}
+</style>
+<script src="lib/proj4.js"></script>
+<script src="lib/leaflet.js"></script>
+<script src="js/dxf.js"></script>
+</head>
+<body>
+<!-- ============ PORTADA (v2) ============ -->
+<div class="screen active" id="screenPortada">
+  <img class="sello" src="assets/sello_monagas.png" alt="Escudo del estado Monagas">
+  <div class="portada-main">
+    <h1 class="portada-nombre">GEOCOMUNAS</h1>
+    <p class="portada-intro">Captura de datos en campo con GPS y foto para el SIG de las Comunas de Monagas. Registra comunas, lotes de siembra, proyectos, centros de votación y más — trabaja sin internet y exporta a QGIS/PostGIS.</p>
+    <div class="cita">“Moral y Luces son nuestras primeras necesidades”</div>
+    <div class="cita-autor">— Simón Bolívar</div>
+  </div>
+  <button class="btn pri" id="btnStart">Iniciar</button>
+  <div class="verpill">v2 · EPSG:2203 · UTM 20N · REGVEN</div>
+</div>
+
+<!-- ============ INICIO (menú) ============ -->
+<div class="screen" id="screenHome">
+  <div class="hero">
+    <div class="logo"><span class="mark"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="10" y="10" width="4.5" height="4.5" rx="1" transform="rotate(45 12.25 12.25)"/><path d="M12.2 2.8v3.4M12.2 17.8v3.4M2.8 12.2h3.4M17.8 12.2h3.4"/><path d="M5.8 5.8l2.2 2.2M16 16l2.2 2.2M18.2 5.8 16 8M8 16l-2.2 2.2"/></svg></span><div><h1>GeoComunas</h1></div></div>
+    <div class="herosub">Captura de campo · SIG de las Comunas de Monagas</div>
+    <div id="offlinePill"></div>
+  </div>
+  <button class="btn pri" id="btnGoRegister"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V2.5h6V4"/><path d="M9 13.5l2.3 2.3 4.2-4.8"/></svg> Registrar en campo</button>
+  <button class="btn" id="btnGoGallery"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 7a2 2 0 0 1 2-2h4l2 2.5h7a2 2 0 0 1 2 2V18a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z"/></svg> Mis levantamientos <span id="galCount" class="badge"></span></button>
+  <button class="btn" id="btnGoTiles"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="10" y="10" width="4.5" height="4.5" rx="1" transform="rotate(45 12.25 12.25)"/><path d="M12.2 2.8v3.4M12.2 17.8v3.4M2.8 12.2h3.4M17.8 12.2h3.4"/></svg> Preparar salida <span style="font-weight:400;font-size:12.5px">(mapa sin internet)</span></button>
+  <button class="btn" id="btnGoCalc"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19V5l14 14z"/><path d="M9.5 19v-4M14 19v-7.5"/></svg> Calculadora de áreas</button>
+  <button class="btn ghost" id="btnGoSettings"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.8v2.6M12 18.6v2.6M2.8 12h2.6M18.6 12h2.6M5.5 5.5l1.8 1.8M16.7 16.7l1.8 1.8M18.5 5.5l-1.8 1.8M7.3 16.7l-1.8 1.8"/></svg> Ajustes</button>
+  <div class="card" style="margin-top:10px"><div class="sub" style="margin:0"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px"><path d="M12 21s-6.5-5.6-6.5-10.5A6.5 6.5 0 0 1 12 4a6.5 6.5 0 0 1 6.5 6.5C18.5 15.4 12 21 12 21z"/><circle cx="12" cy="10.5" r="2.3"/></svg> <b>EPSG:2203</b> · UTM 20N · REGVEN — <span id="homeStatus">Listo para trabajar.</span></div></div>
+</div>
+
+<!-- ============ CATEGORÍAS ============ -->
+<div class="screen" id="screenCats">
+  <div class="topbar"><button class="back" data-go="screenHome">←</button><h2 style="margin:0">¿Qué vas a registrar?</h2></div>
+  <div class="sub">Elige la categoría. Cada una tiene su formulario, su geometría y su color en el mapa.</div>
+  <div class="catgrid" id="catGrid"></div>
+</div>
+
+<!-- ============ FORMULARIO DE REGISTRO ============ -->
+<div class="screen" id="screenForm">
+  <div class="topbar"><button class="back" id="btnFormBack">←</button><h2 style="margin:0" id="formTitle">Registro</h2></div>
+  <div class="tabs" id="formTabs"></div>
+  <div class="tabpage" id="tabDatos"><div class="card" id="formFields"></div></div>
+  <div class="tabpage" id="tabGeometria">
+    <div class="card">
+      <div id="formMap"></div>
+      <div class="status" id="geoStatus">Toca «Grabar punto» en cada vértice del terreno.</div>
+      <div class="ptlist" id="geoPtList"><div style="color:var(--muted)">Sin puntos aún.</div></div>
+      <div class="btnrow">
+        <button class="btn sm pri" id="btnGpsPoint">📍 Grabar punto aquí</button>
+        <button class="btn sm" id="btnGpsUndo">↩ Deshacer</button>
+        <button class="btn sm warnb" id="btnGpsClear">🗑 Limpiar</button>
+      </div>
+      <div class="hint" id="geoHint"></div>
+    </div>
+  </div>
+  <div class="tabpage" id="tabFotos">
+    <div class="card">
+      <h2 style="margin-top:0">📷 Fotos <span class="req">(mínimo 1, obligatoria)</span></h2>
+      <div class="sub">La foto da constancia de la visita al campo. Se usa la cámara trasera del teléfono.</div>
+      <div class="thumbs" id="photoThumbs"></div>
+      <label class="btn" for="photoInput" style="margin-top:6px">📷 Tomar foto</label>
+      <input type="file" id="photoInput" accept="image/*" capture="environment" style="display:none" multiple>
+      <div class="status" id="photoStatus">Aún no hay fotos. Toma al menos una para poder guardar.</div>
+    </div>
+  </div>
+  <button class="btn ok" id="btnSaveRecord">💾 Guardar registro</button>
+  <div class="status" id="formStatus" style="display:none"></div>
+</div>
+
+<!-- ============ GALERÍA ============ -->
+<div class="screen" id="screenGallery">
+  <div class="topbar"><button class="back" data-go="screenHome">←</button><h2 style="margin:0">Mis levantamientos</h2></div>
+  <div class="toolbar">
+    <select id="galFilterCat" style="flex:1;min-width:150px"></select>
+    <input type="search" id="galSearch" placeholder="Buscar por código o nombre…" style="flex:2;min-width:170px">
+  </div>
+  <div class="btnrow">
+    <button class="btn sm pri" id="btnExportAll">⬇ Exportar todo</button>
+    <button class="btn sm" id="btnShareAll">📤 Compartir todo (WhatsApp)</button>
+  </div>
+  <div id="galList" style="margin-top:8px"></div>
+</div>
+
+<!-- ============ PREPARAR SALIDA (TESELAS) ============ -->
+<div class="screen" id="screenTiles">
+  <div class="topbar"><button class="back" data-go="screenHome">←</button><h2 style="margin:0">Preparar salida</h2></div>
+  <div class="sub">Descarga el mapa satelital del sector <b>antes</b> de ir a campo (con internet). En el terreno, la app lo muestra sin conexión.</div>
+  <div class="card">
+    <div id="tileMap"></div>
+    <div class="btnrow" style="margin-top:8px">
+      <button class="btn sm" id="btnSectorA">① Marcar esquina A</button>
+      <button class="btn sm" id="btnSectorB">② Marcar esquina B</button>
+      <button class="btn sm" id="btnSectorView">Usar vista actual</button>
+      <button class="btn sm" id="btnSectorClear">✕ Borrar rectángulo</button>
+    </div>
+    <div class="grid2" style="margin-top:8px">
+      <div><label class="f"><b>Zoom mín.</b></label><select id="tileZmin"></select></div>
+      <div><label class="f"><b>Zoom máx.</b></label><select id="tileZmax"></select></div>
+    </div>
+    <label class="f"><b>Nombre del paquete</b> <span class="req">*</span></label>
+    <input id="tileSectorName" placeholder="Ej.: Sector El Porvenir">
+    <div class="status" id="tileEstimate">Marca el sector en el mapa para estimar la descarga.</div>
+    <div class="progress" style="display:none" id="tileProgWrap"><i id="tileProg"></i></div>
+    <div class="btnrow">
+      <button class="btn sm pri" id="btnTileDownload">⬇ Descargar teselas</button>
+      <button class="btn sm warnb" id="btnTileCancel" style="display:none">✕ Cancelar</button>
+    </div>
+  </div>
+  <div class="card"><h2 style="margin-top:0">Paquetes descargados</h2><div id="tilePackages"></div>
+    <details class="help"><summary>¿Por qué no una carpeta del teléfono?</summary>
+    El navegador del teléfono no permite a una página web leer una carpeta arbitraria del dispositivo. Por eso las teselas se guardan dentro de la app (IndexedDB) como paquetes nombrados por sector. Pieza futura: importar un ZIP con estructura z/x/y.</details>
+  </div>
+</div>
+
+<!-- ============ CALCULADORA DE ÁREAS ============ -->
+<div class="screen" id="screenCalc">
+  <div class="topbar"><button class="back" data-go="screenHome">←</button><h2 style="margin:0">Calculadora de áreas</h2></div>
+  <div class="card">
+    <div class="btnrow">
+      <button class="btn sm pri" id="btnCalcGps">📍 Grabar puntos GPS</button>
+      <button class="btn sm" id="btnCalcManual">⌨️ Coordenadas UTM</button>
+    </div>
+    <div id="calcGpsBlock" style="display:none">
+      <div class="status" id="calcStatus">Toca «Grabar punto aquí» en cada vértice.</div>
+      <div class="ptlist" id="calcPtList"><div style="color:var(--muted)">Sin puntos aún.</div></div>
+      <div class="btnrow">
+        <button class="btn sm pri" id="btnCalcRecord">📍 Grabar punto aquí</button>
+        <button class="btn sm" id="btnCalcUndo">↩ Deshacer</button>
+        <button class="btn sm ok" id="btnCalcFinish">✓ Calcular área</button>
+      </div>
+    </div>
+    <div id="calcManualBlock" style="display:none">
+      <div class="grid2">
+        <div><label class="f"><b>Huso UTM</b> (1–60)</label><input id="calcZone" type="number" min="1" max="60" placeholder="20" inputmode="numeric"></div>
+        <div><label class="f"><b>Hemisferio</b></label><select id="calcHemi"><option value="N">Norte</option><option value="S">Sur</option></select></div>
+      </div>
+      <label class="f"><b>Número de vértices</b> (3–200)</label>
+      <input id="calcCount" type="number" min="3" max="200" placeholder="4" inputmode="numeric">
+      <div class="btnrow" style="margin-top:8px"><button class="btn sm pri" id="btnCalcGenTable">Generar planilla</button></div>
+      <div id="calcTableWrap" style="display:none;margin-top:8px">
+        <div class="tablewrap"><table class="dt plantilla"><thead><tr><th>Vértice</th><th>Este (m)</th><th>Norte (m)</th></tr></thead><tbody id="calcTableBody"></tbody></table></div>
+        <div class="btnrow" style="margin-top:8px">
+          <button class="btn sm ok" id="btnCalcManualGo">✓ Calcular área</button>
+          <button class="btn sm ghost" id="btnCalcManualCancel">Cancelar</button>
+        </div>
+      </div>
+      <div class="status" id="calcManualMsg" style="display:none"></div>
+      <div class="hint">Zona de trabajo: huso 20 Norte (EPSG:2203). La planilla acepta cualquier huso/hemisferio para casos especiales.</div>
+    </div>
+  </div>
+  <div class="card" id="calcResultCard" style="display:none">
+    <h2 style="margin-top:0">Resultado</h2>
+    <dl class="kv"><dt>Área</dt><dd><b id="calcArea">—</b></dd><dt>Vértices</dt><dd id="calcN">—</dd></dl>
+    <div id="calcMap" style="height:40vh;min-height:260px;border-radius:12px;border:1px solid var(--line2)"></div>
+    <div class="btnrow" style="margin-top:8px">
+      <button class="btn sm" id="btnCalcCsv">⬇ CSV</button>
+      <button class="btn sm" id="btnCalcDxf">📐 DXF</button>
+      <button class="btn sm" id="btnCalcShare">📤 Compartir</button>
+      <button class="btn sm ghost" id="btnCalcNew">Nuevo cálculo</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ AJUSTES ============ -->
+<div class="screen" id="screenSettings">
+  <div class="topbar"><button class="back" data-go="screenHome">←</button><h2 style="margin:0">Ajustes</h2></div>
+  <div class="card">
+    <label class="f"><b>Responsable por defecto</b> (quien levanta los datos)</label>
+    <input id="setResponsable" placeholder="Ej.: Víctor Hugo M.">
+    <label class="f"><b>SRC de producción</b></label>
+    <input value="EPSG:2203 · UTM 20N · REGVEN (convive con WGS84)" disabled>
+    <button class="btn pri" id="btnSaveSettings">💾 Guardar ajustes</button>
+  </div>
+  <div class="card">
+    <h2 style="margin-top:0">Acerca de</h2>
+    <div class="sub" style="margin:0">GeoComunas v2.0 — captura de campo para el SIG de las Comunas de Monagas.<br>Reemplazo simple de QField: sin proyecto que empaquetar, sin cable.<br>La población votante (18+) es dato de <b>oficina</b> y se une por <b>cod_comuna</b>.</div>
+  </div>
+</div>
+
+<nav class="foot" style="display:none">
+  <button data-go="screenHome" class="active"><span class="i"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11.5 12 4.5l8 7"/><path d="M6 10.3V19h12v-8.7"/></svg></span>Inicio</button>
+  <button data-go="screenCats"><span class="i"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V2.5h6V4"/><path d="M9 13.5l2.3 2.3 4.2-4.8"/></svg></span>Registrar</button>
+  <button data-go="screenGallery"><span class="i"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 7a2 2 0 0 1 2-2h4l2 2.5h7a2 2 0 0 1 2 2V18a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z"/></svg></span>Archivos</button>
+  <button data-go="screenTiles"><span class="i"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="10" y="10" width="4.5" height="4.5" rx="1" transform="rotate(45 12.25 12.25)"/><path d="M12.2 2.8v3.4M12.2 17.8v3.4M2.8 12.2h3.4M17.8 12.2h3.4"/></svg></span>Salida</button>
+</nav>
+<script>
+/* ============================================================
+   GeoComunas v1.0 — Captura de campo para el SIG de las Comunas
+   Reemplazo simple de QField: formularios por categoría (categorias.json),
+   GPS, foto obligatoria, almacén IndexedDB, GeoJSON EPSG:2203, PWA offline.
+   ============================================================ */
+'use strict';
+
+// ---------- Constantes ----------
+const EPSG2203 = '+proj=utm +zone=20 +datum=WGS84 +units=m +no_defs'; // REGVEN convive con WGS84 (diferencia submétrica)
+const APP_VERSION = '2.0';
+const TILE_URL = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
+const TILE_ATTRIB = 'Tiles © Esri — Source: Esri, Maxar, Earthstar Geographics';
+
+// ---------- Utilidades ----------
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pad2 = v => String(v).padStart(2,'0');
+function stamp(){ const t=new Date(); return `${t.getFullYear()}${pad2(t.getMonth()+1)}${pad2(t.getDate())}_${pad2(t.getHours())}${pad2(t.getMinutes())}`; }
+function hoyISO(){ const t=new Date(); return `${t.getFullYear()}-${pad2(t.getMonth()+1)}-${pad2(t.getDate())}`; }
+function uid(p){ return (p||'id')+'_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,7); }
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  $(id).classList.add('active');
+  document.querySelectorAll('.foot button').forEach(b=>b.classList.toggle('active', b.dataset.go===id));
+  document.querySelector('.foot').style.display=(id==='screenPortada')?'none':'flex';
+  window.scrollTo(0,0);
+  if(id==='screenHome') refreshHome();
+  if(id==='screenTiles') setTimeout(initTileMap,60);
+}
+document.querySelectorAll('[data-go]').forEach(b=>b.addEventListener('click',()=>showScreen(b.dataset.go)));
+$('btnStart').onclick=()=>showScreen('screenHome');
+function setStatus(el,msg,kind){ el.textContent=msg; el.className='status'+(kind?' '+kind:''); el.style.display='block'; }
+
+// ---------- SRC ----------
+function to2203(lat,lon){ const [e,n]=proj4('WGS84',EPSG2203,[lon,lat]); return {e,n}; }
+function toLL(e,n){ const [lon,lat]=proj4(EPSG2203,'WGS84',[e,n]); return {lat,lon}; }
+function shoelaceM2(ptsEN){ let s=0; const n=ptsEN.length; for(let i=0;i<n;i++){const j=(i+1)%n; s+=ptsEN[i][0]*ptsEN[j][1]-ptsEN[j][0]*ptsEN[i][1];} return Math.abs(s)/2; }
+function qualityTier(acc){
+  if(acc==null||!isFinite(acc)) return {level:0,label:'Sin señal',cls:''};
+  if(acc<=5)  return {level:4,label:'Excelente',cls:'q-excellent'};
+  if(acc<=15) return {level:3,label:'Buena',cls:'q-good'};
+  if(acc<=30) return {level:2,label:'Regular',cls:'q-fair'};
+  return {level:1,label:'Débil',cls:'q-poor'};
+}
+
+// ---------- IndexedDB ----------
+const DBN='geocomunas', DBV=1;
+let dbp=null;
+function db(){
+  if(dbp) return dbp;
+  dbp=new Promise((res,rej)=>{
+    const r=indexedDB.open(DBN,DBV);
+    r.onupgradeneeded=()=>{
+      const d=r.result;
+      if(!d.objectStoreNames.contains('registros')){ const s=d.createObjectStore('registros',{keyPath:'id'}); s.createIndex('categoria','categoria'); s.createIndex('cod_comuna','cod_comuna'); s.createIndex('fecha_captura','fecha_captura'); }
+      if(!d.objectStoreNames.contains('fotos')){ const s=d.createObjectStore('fotos',{keyPath:'id'}); s.createIndex('registro_id','registro_id'); }
+      if(!d.objectStoreNames.contains('teselas')){ const s=d.createObjectStore('teselas',{keyPath:'key'}); s.createIndex('sector','sector'); }
+      if(!d.objectStoreNames.contains('sectores')) d.createObjectStore('sectores',{keyPath:'nombre'});
+      if(!d.objectStoreNames.contains('config')) d.createObjectStore('config',{keyPath:'k'});
+    };
+    r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error);
+  });
+  return dbp;
+}
+// Variante simple de get/all sin promesas anidadas raras:
+async function dbGet(st,k){ const d=await db(); return new Promise((res,rej)=>{ const q=d.transaction(st,'readonly').objectStore(st).get(k); q.onsuccess=()=>res(q.result); q.onerror=()=>rej(q.error); }); }
+async function dbAll(st){ const d=await db(); return new Promise((res,rej)=>{ const q=d.transaction(st,'readonly').objectStore(st).getAll(); q.onsuccess=()=>res(q.result||[]); q.onerror=()=>rej(q.error); }); }
+async function dbPut(st,v){ const d=await db(); return new Promise((res,rej)=>{ const t=d.transaction(st,'readwrite'); t.objectStore(st).put(v); t.oncomplete=()=>res(true); t.onerror=()=>rej(t.error); }); }
+async function dbDel(st,k){ const d=await db(); return new Promise((res,rej)=>{ const t=d.transaction(st,'readwrite'); t.objectStore(st).delete(k); t.oncomplete=()=>res(true); t.onerror=()=>rej(t.error); }); }
+async function dbByIndex(st,ix,val){ const d=await db(); return new Promise((res,rej)=>{ const q=d.transaction(st,'readonly').objectStore(st).index(ix).getAll(val); q.onsuccess=()=>res(q.result||[]); q.onerror=()=>rej(q.error); }); }
+
+// ---------- Categorías ----------
+// CATEGORIAS_EMBED: respaldo embebido inyectado por build_single.py.
+// Permite abrir la app por tap directo (file://), donde fetch() está bloqueado.
+let CATS=null;
+async function loadCats(){
+  try{
+    const r=await fetch('categorias.json');
+    if(!r.ok) throw new Error('fetch no ok');
+    CATS=await r.json();
+  }catch(e){
+    if(typeof CATEGORIAS_EMBED!=='undefined'&&CATEGORIAS_EMBED){ CATS=CATEGORIAS_EMBED; }
+    else { throw e; }
+  }
+  // validación mínima del esquema
+  if(!CATS.categorias||!CATS.categorias.length) throw new Error('Sin categorías');
+  for(const c of CATS.categorias){
+    if(!c.id||!c.tabla_destino||!c.geometria) throw new Error('Categoría inválida: '+JSON.stringify(c).slice(0,80));
+  }
+  return CATS;
+}
+const catById=id=>CATS.categorias.find(c=>c.id===id);
+const MUNICIPIOS=()=>CATS.municipios;
+
+// ---------- Ajustes ----------
+async function getSetting(k,def){ const r=await dbGet('config',k); return r?r.v:def; }
+async function setSetting(k,v){ await dbPut('config',{k,v}); }
+async function refreshHome(){
+  const n=(await dbAll('registros')).length;
+  $('galCount').textContent=n?('('+n+')'):'';
+  $('offlinePill').innerHTML=navigator.onLine?'':'<span class="offline-pill">📴 Sin conexión — la app sigue funcionando</span>';
+}
+window.addEventListener('online',refreshHome); window.addEventListener('offline',refreshHome);
+</script>
+<script>
+/* ---------- Selector de categorías ---------- */
+function geomLabel(g){ return g==='poligono'?'Polígono GPS':g==='punto'?'Punto GPS':'Sin geometría'; }
+function renderCatGrid(){
+  const g=$('catGrid');
+  g.innerHTML=CATS.categorias.map(c=>
+    `<div class="catcard" style="border-left-color:${c.color_mapa}" data-cat="${c.id}">
+       <div class="t">${c.icono} ${esc(c.etiqueta)}</div>
+       <div class="d">${geomLabel(c.geometria)} → <code>${esc(c.tabla_destino)}</code></div>
+     </div>`).join('');
+  g.querySelectorAll('.catcard').forEach(el=>el.onclick=()=>startRecord(el.dataset.cat));
+}
+$('btnGoRegister').onclick=()=>{ renderCatGrid(); showScreen('screenCats'); };
+$('btnGoTiles').onclick=()=>showScreen('screenTiles'); // misma ruta que el icono satélite del pie (data-go="screenTiles")
+
+/* ---------- Estado del formulario ---------- */
+let F=null; // {cat, editingId, values, geomPts:[{lat,lon,acc}], fotos:[{id,nombre,blob,url}], comunasSugeridas}
+let formMap=null, formLayer=null, formMarkers=[];
+
+async function startRecord(catId, existing){
+  const cat=catById(catId);
+  F={cat, editingId: existing?existing.id:null, values:{}, geomPts:[], fotos:[]};
+  // comunas ya registradas → sugerencias para cod_comuna
+  const regs=await dbAll('registros');
+  F.comunas=[...new Set(regs.filter(r=>r.categoria==='comuna').map(r=>r.codigo))];
+  if(existing){
+    F.values=Object.assign({},existing.campos);
+    F.values.responsable=existing.responsable; F.values.observaciones=existing.observaciones;
+    F.geomPts=(existing.geometria.ptsLL||[]).map(p=>({lat:p[0],lon:p[1],acc:p[2]}));
+    for(const f of (existing.fotos||[])){
+      const fr=await dbGet('fotos',f.id);
+      if(fr) F.fotos.push({id:fr.id,nombre:fr.nombre,blob:fr.blob,url:URL.createObjectURL(fr.blob)});
+    }
+  } else {
+    F.values.responsable=await getSetting('responsable','');
+  }
+  $('formTitle').innerHTML=(existing?'Editar · ':'Nuevo · ')+cat.icono+' '+esc(cat.etiqueta);
+  renderFormTabs(); renderFormFields(); renderPhotoThumbs();
+  $('formStatus').style.display='none';
+  showScreen('screenForm');
+  setTimeout(initFormMap,80);
+}
+$('btnFormBack').onclick=()=>{ if(F&&F.editingId){showScreen('screenGallery');} else {renderCatGrid();showScreen('screenCats');} };
+
+/* ---------- Pestañas ---------- */
+function renderFormTabs(){
+  const tabs=F.cat.pestanas;
+  $('formTabs').innerHTML=tabs.map((t,i)=>`<button data-tab="${t}" class="${i===0?'active':''}">${t}</button>`).join('');
+  $('formTabs').querySelectorAll('button').forEach(b=>b.onclick=()=>{
+    $('formTabs').querySelectorAll('button').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    ['tabDatos','tabGeometria','tabFotos'].forEach(id=>$(id).classList.remove('active'));
+    const map={Datos:'tabDatos','Geometría':'tabGeometria',Fotos:'tabFotos'};
+    $(map[b.dataset.tab]).classList.add('active');
+    if(b.dataset.tab==='Geometría') setTimeout(()=>{ if(formMap){formMap.invalidateSize();} },80);
+  });
+  ['tabDatos','tabGeometria','tabFotos'].forEach(id=>$(id).classList.remove('active'));
+  $('tabDatos').classList.add('active');
+  if(!tabs.includes('Geometría')) $('tabGeometria').innerHTML='<div class="card"><div class="sub">Esta categoría no lleva geometría (registro de seguimiento).</div></div>';
+}
+
+/* ---------- Campos ---------- */
+function fieldInput(f,val){
+  const v=val??f.por_defecto??'';
+  const req=f.obligatorio?' <span class="req">*</span>':'';
+  const help=f.ayuda?`<div class="hint">${esc(f.ayuda)}</div>`:'';
+  const err=`<div class="ferr" id="err_${f.nombre}"></div>`;
+  let ctrl='';
+  if(f.tipo==='lista'){
+    const opts=f.dominio.map(d=>`<option value="${esc(d)}" ${String(v)===d?'selected':''}>${esc((f.etiquetas||{})[d]||d)}</option>`).join('');
+    ctrl=`<select id="fld_${f.nombre}" data-f="${f.nombre}"><option value="">— Elegir —</option>${opts}</select>`;
+  } else if(f.tipo==='lista_municipios'){
+    const opts=MUNICIPIOS().map(m=>`<option value="${m.codigo}" ${String(v)===m.codigo?'selected':''}>${m.codigo} · ${esc(m.nombre)}</option>`).join('');
+    ctrl=`<select id="fld_${f.nombre}" data-f="${f.nombre}"><option value="">— Elegir —</option>${opts}</select>`;
+  } else if(f.tipo==='fecha'){
+    ctrl=`<input type="date" id="fld_${f.nombre}" data-f="${f.nombre}" value="${esc(v==='hoy'?hoyISO():v)}">`;
+  } else if(f.tipo==='entero'||f.tipo==='decimal'){
+    const step=f.tipo==='decimal'?'any':'1';
+    const ro=f.auto==='area_poligono_ha'?'readonly':'';
+    ctrl=`<input type="number" step="${step}" inputmode="decimal" id="fld_${f.nombre}" data-f="${f.nombre}" value="${esc(v)}" ${ro} ${f.min!==undefined?`min="${f.min}"`:''} ${f.max!==undefined?`max="${f.max}"`:''}>`;
+  } else { // texto, codigo
+    const ro=f.auto?'readonly':'';
+    ctrl=`<input type="text" id="fld_${f.nombre}" data-f="${f.nombre}" value="${esc(v)}" ${ro} placeholder="${esc(f.ayuda||'')}">`;
+  }
+  // datalist de comunas para campos cod_comuna
+  let dl='';
+  if(f.nombre==='cod_comuna'&&F.comunas.length){
+    dl=`<datalist id="dl_comunas">${F.comunas.map(c=>`<option value="${esc(c)}">`).join('')}</datalist>`;
+    ctrl=ctrl.replace('placeholder=', 'list="dl_comunas" placeholder=');
+  }
+  return `<label class="f"><b>${esc(f.etiqueta)}</b>${req}</label>${ctrl}${help}${err}${dl}`;
+}
+function renderFormFields(){
+  const auto=f=>{ if(f.por_defecto==='hoy') return hoyISO(); return f.por_defecto??''; };
+  let h=F.cat.campos.map(f=>fieldInput(f, F.values[f.nombre]??auto(f))).join('');
+  h+=`<label class="f"><b>Responsable</b> <span class="req">*</span></label>
+      <input type="text" id="fld_responsable" value="${esc(F.values.responsable||'')}" placeholder="Quien levanta los datos">`;
+  h+=`<label class="f"><b>Observaciones</b></label>
+      <textarea id="fld_observaciones" placeholder="Notas de campo…">${esc(F.values.observaciones||'')}</textarea>`;
+  $('formFields').innerHTML=h;
+  // validación en vivo para códigos
+  F.cat.campos.filter(f=>f.regex).forEach(f=>{
+    const el=$('fld_'+f.nombre);
+    if(el) el.addEventListener('input',()=>{
+      const ok=new RegExp(f.regex).test(el.value.trim());
+      el.classList.toggle('bad',el.value.trim()!==''&&!ok);
+      const e=$('err_'+f.nombre);
+      if(e){ e.style.display=(!ok&&el.value.trim()!=='')?'block':'none'; e.textContent=!ok&&el.value.trim()!==''?'Formato inválido. '+(f.ayuda||''):''; }
+    });
+  });
+}
+function readFormValues(){
+  const vals={};
+  F.cat.campos.forEach(f=>{
+    const el=$('fld_'+f.nombre);
+    if(!el) return;
+    vals[f.nombre]=el.value.trim();
+  });
+  vals.responsable=$('fld_responsable').value.trim();
+  vals.observaciones=$('fld_observaciones').value.trim();
+  return vals;
+}
+function validateValues(vals){
+  const errs=[];
+  F.cat.campos.forEach(f=>{
+    const el=$('fld_'+f.nombre), e=$('err_'+f.nombre);
+    const v=(vals[f.nombre]||'').trim();
+    let msg='';
+    if(f.obligatorio&&!v&&!f.auto) msg='Campo obligatorio.';
+    else if(v&&f.regex&&!new RegExp(f.regex).test(v)) msg='Formato inválido. '+(f.ayuda||'');
+    else if(v&&(f.tipo==='entero'||f.tipo==='decimal')){
+      const n=Number(v);
+      if(!isFinite(n)) msg='Debe ser un número.';
+      else if(f.min!==undefined&&n<f.min) msg=`Mínimo ${f.min}.`;
+      else if(f.max!==undefined&&n>f.max) msg=`Máximo ${f.max}.`;
+    }
+    if(e){ e.style.display=msg?'block':'none'; e.textContent=msg; }
+    if(el) el.classList.toggle('bad',!!msg);
+    if(msg) errs.push(f.etiqueta+': '+msg);
+  });
+  if(!vals.responsable) errs.push('Responsable: campo obligatorio.');
+  // coherencia de fechas
+  if(vals.fecha_siembra&&vals.fecha_cosecha&&vals.fecha_cosecha<vals.fecha_siembra) errs.push('La fecha de cosecha no puede ser anterior a la de siembra.');
+  if(vals.fecha_inicio&&vals.fecha_fin_prevista&&vals.fecha_fin_prevista<vals.fecha_inicio) errs.push('La fecha fin prevista no puede ser anterior a la de inicio.');
+  // geometría
+  const g=F.cat.geometria;
+  if(g==='poligono'&&F.geomPts.length<3) errs.push('Geometría: graba al menos 3 vértices del polígono.');
+  if(g==='punto'&&F.geomPts.length<1) errs.push('Geometría: graba el punto GPS.');
+  // foto obligatoria
+  if(F.fotos.length<1) errs.push('Foto: toma al menos 1 foto como constancia de la visita.');
+  return errs;
+}
+</script>
+<script>
+/* ---------- Mapa del formulario ---------- */
+function baseLayer(){ return L.tileLayer(TILE_URL,{attribution:TILE_ATTRIB,maxZoom:19}); }
+function initFormMap(){
+  if(F.cat.geometria==='ninguna'){ $('formMap').innerHTML='<div class="sub">Sin geometría para esta categoría.</div>'; return; }
+  if(!formMap){
+    formMap=L.map('formMap',{zoomControl:true});
+    formMap.setView([9.74,-63.18],11); // Monagas (Maturín) por defecto
+    applyBaseLayer(formMap); // usa teselas descargadas si hay paquete activo
+  } else {
+    setTimeout(()=>formMap.invalidateSize(),100);
+  }
+  drawFormGeom();
+  $('geoHint').textContent = F.cat.geometria==='poligono'
+    ? 'Polígono: un toque por vértice. El área se calcula sola al guardar.'
+    : 'Punto: un solo toque graba la ubicación exacta.';
+  if(F.cat.geometria==='punto') setStatus($('geoStatus'),'Toca «Grabar punto» una vez, en el sitio exacto.','');
+}
+function drawFormGeom(){
+  if(!formMap) return;
+  if(formLayer){ formMap.removeLayer(formLayer); formLayer=null; }
+  formMarkers.forEach(m=>formMap.removeLayer(m)); formMarkers=[];
+  const pts=F.geomPts.map(p=>[p.lat,p.lon]);
+  if(!pts.length){ renderGeoList(); return; }
+  const col=F.cat.color_mapa;
+  if(F.cat.geometria==='poligono'&&pts.length>=3){
+    formLayer=L.polygon(pts,{color:col,weight:3,fillColor:col,fillOpacity:.3}).addTo(formMap);
+  } else if(F.cat.geometria==='poligono'){
+    formLayer=L.polyline(pts,{color:col,weight:3}).addTo(formMap);
+  } else {
+    formLayer=L.circleMarker(pts[0],{radius:8,color:'#fff',weight:2,fillColor:col,fillOpacity:1}).addTo(formMap);
+  }
+  pts.forEach(p=>formMarkers.push(L.circleMarker(p,{radius:4,color:'#fff',weight:1,fillColor:col,fillOpacity:1}).addTo(formMap)));
+  formMap.fitBounds(formLayer.getBounds(),{padding:[24,24]});
+  renderGeoList();
+}
+function renderGeoList(){
+  const el=$('geoPtList');
+  if(!F.geomPts.length){ el.innerHTML='<div style="color:var(--muted)">Sin puntos aún.</div>'; return; }
+  el.innerHTML=F.geomPts.map((p,i)=>{
+    const t=p.acc!==undefined?qualityTier(p.acc):null;
+    const q=t?` · ±${p.acc.toFixed(1)} m <span class="qtag ${t.cls}">${t.label.toLowerCase()}</span>`:'';
+    return `<div><span class="pt-idx">${F.cat.geometria==='punto'?'●':'V'+(i+1)}</span> ${p.lat.toFixed(5)}, ${p.lon.toFixed(5)}${q}</div>`;
+  }).join('');
+}
+let gpsBusy=false;
+$('btnGpsPoint').onclick=()=>{
+  if(gpsBusy) return;
+  if(!navigator.geolocation){ setStatus($('geoStatus'),'Este navegador no soporta geolocalización.','err'); return; }
+  if(F.cat.geometria==='punto'&&F.geomPts.length>=1){ setStatus($('geoStatus'),'Ya hay un punto. Usa «Limpiar» para repetirlo.','err'); return; }
+  gpsBusy=true; $('btnGpsPoint').disabled=true;
+  setStatus($('geoStatus'),'Buscando señal GPS… quédate quieto en el sitio.');
+  navigator.geolocation.getCurrentPosition(pos=>{
+    const {latitude,longitude,accuracy}=pos.coords;
+    F.geomPts.push({lat:latitude,lon:longitude,acc:accuracy});
+    const t=qualityTier(accuracy);
+    if(accuracy>30) setStatus($('geoStatus'),`Punto grabado (± ${accuracy.toFixed(1)} m, señal débil). Conviene repetirlo si puedes.`,'err');
+    else setStatus($('geoStatus'),`Punto grabado (± ${accuracy.toFixed(1)} m, ${t.label.toLowerCase()}).`,'locked');
+    drawFormGeom(); gpsBusy=false; $('btnGpsPoint').disabled=false;
+  },err=>{
+    setStatus($('geoStatus'),'No se pudo obtener la ubicación: '+err.message,'err');
+    gpsBusy=false; $('btnGpsPoint').disabled=false;
+  },{enableHighAccuracy:true,timeout:20000,maximumAge:0});
+};
+$('btnGpsUndo').onclick=()=>{ F.geomPts.pop(); drawFormGeom(); };
+$('btnGpsClear').onclick=()=>{ F.geomPts=[]; drawFormGeom(); setStatus($('geoStatus'),'Puntos eliminados. Vuelve a grabar.',''); };
+
+/* ---------- Fotos (mínimo 1, obligatoria) ---------- */
+$('photoInput').addEventListener('change',async e=>{
+  const files=[...e.target.files];
+  for(const f of files){
+    try{
+      const blob=await compressPhoto(f);
+      const nombre='foto_'+stamp()+'_'+Math.random().toString(36).slice(2,6)+'.jpg';
+      F.fotos.push({id:uid('ft'),nombre,blob,url:URL.createObjectURL(blob)});
+    }catch(err){ setStatus($('photoStatus'),'No se pudo procesar una foto.','err'); }
+  }
+  e.target.value='';
+  renderPhotoThumbs();
+});
+function compressPhoto(file){
+  return new Promise((res,rej)=>{
+    const img=new Image();
+    const url=URL.createObjectURL(file);
+    img.onload=()=>{
+      URL.revokeObjectURL(url);
+      const MAX=1600;
+      let {width:w,height:h}=img;
+      const sc=Math.min(1,MAX/Math.max(w,h));
+      w=Math.round(w*sc); h=Math.round(h*sc);
+      const c=document.createElement('canvas'); c.width=w; c.height=h;
+      c.getContext('2d').drawImage(img,0,0,w,h);
+      c.toBlob(b=>b?res(b):rej(new Error('blob')),'image/jpeg',0.82);
+    };
+    img.onerror=rej; img.src=url;
+  });
+}
+function renderPhotoThumbs(){
+  const el=$('photoThumbs');
+  el.innerHTML=F.fotos.map((f,i)=>
+    `<div class="thumb"><img src="${f.url}" alt="foto ${i+1}"><button data-i="${i}" title="Quitar">✕</button></div>`).join('');
+  el.querySelectorAll('button').forEach(b=>b.onclick=()=>{ F.fotos.splice(+b.dataset.i,1); renderPhotoThumbs(); });
+  const n=F.fotos.length;
+  setStatus($('photoStatus'), n?`${n} foto(s) lista(s). ✔ Requisito cumplido.`:'Aún no hay fotos. Toma al menos una para poder guardar.', n?'locked':'err');
+}
+</script>
+<script>
+/* ---------- Guardar registro ---------- */
+function mainCode(cat,vals){
+  const f=cat.campos.find(x=>x.tipo==='codigo')||cat.campos[0];
+  return (vals[f.nombre]||'').trim()||('SIN-CODIGO');
+}
+function geom2203(){
+  const g=F.cat.geometria;
+  if(g==='ninguna') return {tipo:'ninguna',pts2203:[],ptsLL:[]};
+  const ptsLL=F.geomPts.map(p=>[p.lat,p.lon,p.acc]);
+  const pts2203=F.geomPts.map(p=>{const u=to2203(p.lat,p.lon);return [u.e,u.n];});
+  return {tipo:g,pts2203,ptsLL};
+}
+async function nextReportCode(){
+  const t=new Date(), d=`${t.getFullYear()}${pad2(t.getMonth()+1)}${pad2(t.getDate())}`;
+  const regs=await dbAll('registros');
+  const n=regs.filter(r=>r.categoria==='reporte_1x10'&&r.codigo.startsWith('RPT-'+d)).length+1;
+  return `RPT-${d}-${String(n).padStart(5,'0')}`;
+}
+$('btnSaveRecord').onclick=async ()=>{
+  const vals=readFormValues();
+  // autos
+  for(const f of F.cat.campos){
+    if(f.auto==='codigo_reporte'&&!vals[f.nombre]) vals[f.nombre]=await nextReportCode();
+  }
+  const errs=validateValues(vals);
+  if(errs.length){ setStatus($('formStatus'),'❌ Revisa lo siguiente:\n• '+errs.join('\n• '),'err'); window.scrollTo(0,0); return; }
+  const geo=geom2203();
+  let areaHa=null;
+  if(geo.tipo==='poligono'){ areaHa=shoelaceM2(geo.pts2203)/10000; }
+  // auto area_poligono_ha
+  for(const f of F.cat.campos){
+    if(f.auto==='area_poligono_ha'&&areaHa!==null) vals[f.nombre]=areaHa.toFixed(2);
+  }
+  const codigo=mainCode(F.cat,vals);
+  const rec={
+    id: F.editingId||uid('rec'),
+    categoria: F.cat.id, tabla_destino: F.cat.tabla_destino,
+    codigo, cod_comuna: vals.cod_comuna||vals.cod_proyecto||'',
+    campos: vals, geometria: geo,
+    fotos: [], responsable: vals.responsable, observaciones: vals.observaciones,
+    fecha_captura: hoyISO(), precision_gps_m: F.geomPts.length?Math.max(...F.geomPts.map(p=>p.acc||0)):null,
+    area_ha: areaHa, app_version: APP_VERSION, estado_envio:'pendiente'
+  };
+  // fotos: renombrar {codigo}_F{n}.jpg y guardar blobs
+  for(let i=0;i<F.fotos.length;i++){
+    const ph=F.fotos[i];
+    const nombre=`${codigo}_F${i+1}.jpg`.replace(/[^\w.\-áéíóúñü]/gi,'_');
+    const fid=ph.id.startsWith('ft_')&&F.editingId?ph.id:uid('ft');
+    await dbPut('fotos',{id:fid,registro_id:rec.id,nombre,blob:ph.blob,mime:'image/jpeg'});
+    rec.fotos.push({id:fid,nombre});
+  }
+  // si se editaba, borrar fotos huérfanas del registro
+  if(F.editingId){
+    const old=await dbByIndex('fotos','registro_id',rec.id);
+    const keep=new Set(rec.fotos.map(f=>f.id));
+    for(const o of old) if(!keep.has(o.id)) await dbDel('fotos',o.id);
+  }
+  await dbPut('registros',rec);
+  setStatus($('formStatus'),`✔ Registro guardado: ${codigo} (${F.cat.etiqueta}).`,'locked');
+  setTimeout(()=>{ showScreen('screenGallery'); renderGallery(); },900);
+};
+
+/* ---------- Galería ---------- */
+$('btnGoGallery').onclick=()=>{ renderGallery(); showScreen('screenGallery'); };
+function galCard(r){
+  const cat=catById(r.categoria);
+  const geo=r.geometria.tipo==='poligono'?`📐 ${r.area_ha?r.area_ha.toFixed(2)+' ha':''}`
+    :r.geometria.tipo==='punto'?'📍 punto':'📋 sin geometría';
+  return `<div class="galitem">
+    <div class="h"><span class="code">${cat?cat.icono:''} ${esc(r.codigo)}</span>
+      <span class="badge ${r.estado_envio==='enviado'?'env':''}">${r.estado_envio}</span></div>
+    <div class="meta">${esc(cat?cat.etiqueta:r.categoria)} · ${esc(r.cod_comuna||'')} · ${esc(r.fecha_captura)} · ${geo} · 📷 ${r.fotos.length}</div>
+    <div class="btnrow">
+      <button class="btn sm" data-act="edit" data-id="${r.id}">✏️ Editar</button>
+      <button class="btn sm" data-act="dup" data-id="${r.id}">⧉ Duplicar</button>
+      <button class="btn sm" data-act="exp" data-id="${r.id}">⬇ Exportar</button>
+      <button class="btn sm" data-act="share" data-id="${r.id}">📤 Compartir</button>
+      <button class="btn sm warnb" data-act="del" data-id="${r.id}">🗑</button>
+    </div></div>`;
+}
+async function renderGallery(){
+  const regs=(await dbAll('registros')).sort((a,b)=>b.fecha_captura.localeCompare(a.fecha_captura));
+  const fc=$('galFilterCat').value||'', q=($('galSearch').value||'').toLowerCase();
+  $('galFilterCat').innerHTML='<option value="">Todas las categorías</option>'+
+    CATS.categorias.map(c=>`<option value="${c.id}" ${fc===c.id?'selected':''}>${esc(c.etiqueta)}</option>`).join('');
+  const list=regs.filter(r=>(!fc||r.categoria===fc)&&(!q||(r.codigo+' '+(r.campos.nombre||'')+' '+(r.cod_comuna||'')).toLowerCase().includes(q)));
+  $('galList').innerHTML=list.length?list.map(galCard).join(''):'<div class="card"><div class="sub">Sin registros todavía. Toca «Registrar en campo» para empezar.</div></div>';
+  $('galList').querySelectorAll('button').forEach(b=>b.onclick=()=>galAction(b.dataset.act,b.dataset.id));
+  refreshHome();
+}
+$('galFilterCat').onchange=renderGallery; $('galSearch').oninput=renderGallery;
+async function galAction(act,id){
+  const r=await dbGet('registros',id);
+  if(!r) return;
+  if(act==='edit'){ startRecord(r.categoria,r); }
+  else if(act==='dup'){
+    const c={...r,campos:{...r.campos}}; delete c.id;
+    // duplicar: copia atributos, pide nueva geometría y fotos
+    startRecord(r.categoria,null);
+    F.values={...r.campos}; F.values.responsable=r.responsable; F.values.observaciones='';
+    renderFormFields();
+    setStatus($('formStatus'),'Registro duplicado: ajusta los datos y graba la nueva geometría y fotos.','');
+  }
+  else if(act==='del'){
+    if(confirm(`¿Borrar el registro ${r.codigo}? También se borran sus fotos.`)){
+      for(const f of (r.fotos||[])) await dbDel('fotos',f.id);
+      await dbDel('registros',id); renderGallery();
+    }
+  }
+  else if(act==='exp'){ await exportRecords([r]); }
+  else if(act==='share'){ await shareRecords([r]); }
+}
+</script>
+<script>
+/* ---------- Exportación ---------- */
+function downloadBlob(blob,filename){
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download=filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url),3000);
+}
+function featureFromRecord(r){
+  const props={categoria:r.categoria, tabla_destino:r.tabla_destino};
+  for(const k of Object.keys(r.campos)) props[k]=r.campos[k];
+  props.meta_responsable=r.responsable; props.meta_fecha_captura=r.fecha_captura;
+  props.meta_observaciones=r.observaciones||''; props.meta_precision_gps_m=r.precision_gps_m;
+  if(r.area_ha!=null) props.meta_area_ha=+r.area_ha.toFixed(4);
+  props.meta_fotos=(r.fotos||[]).map(f=>f.nombre); props.meta_app='GeoComunas '+r.app_version;
+  let geometry=null;
+  if(r.geometria.tipo==='poligono'){
+    const ring=r.geometria.pts2203.map(p=>[+p[0].toFixed(2),+p[1].toFixed(2)]);
+    ring.push([...ring[0]]);
+    geometry={type:'Polygon',coordinates:[ring]};
+  } else if(r.geometria.tipo==='punto'){
+    const p=r.geometria.pts2203[0];
+    geometry={type:'Point',coordinates:[+p[0].toFixed(2),+p[1].toFixed(2)]};
+  }
+  return {type:'Feature',properties:props,geometry};
+}
+function buildGeoJSON(records){
+  return {type:'FeatureCollection',
+    crs:{type:'name',properties:{name:'EPSG:2203'}},
+    features:records.map(featureFromRecord)};
+}
+function wkt2203(r){
+  if(r.geometria.tipo==='poligono'){
+    const ring=r.geometria.pts2203.map(p=>`${p[0].toFixed(2)} ${p[1].toFixed(2)}`).join(', ');
+    const f=r.geometria.pts2203[0];
+    return `POLYGON ((${ring}, ${f[0].toFixed(2)} ${f[1].toFixed(2)}))`;
+  }
+  if(r.geometria.tipo==='punto'){ const p=r.geometria.pts2203[0]; return `POINT (${p[0].toFixed(2)} ${p[1].toFixed(2)})`; }
+  return '';
+}
+function csvEsc(v){ const s=String(v??''); return /[",;\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s; }
+function buildCSV(records){
+  const fieldKeys=[...new Set(records.flatMap(r=>Object.keys(r.campos)))];
+  const head=['categoria','tabla_destino','codigo','cod_comuna',...fieldKeys,
+    'responsable','fecha_captura','observaciones','precision_gps_m','area_ha',
+    'este_2203','norte_2203','wkt_2203','fotos'];
+  const rows=[head];
+  for(const r of records){
+    let e='',n='';
+    if(r.geometria.tipo==='punto'){ e=r.geometria.pts2203[0][0].toFixed(2); n=r.geometria.pts2203[0][1].toFixed(2); }
+    rows.push([r.categoria,r.tabla_destino,r.codigo,r.cod_comuna,
+      ...fieldKeys.map(k=>r.campos[k]??''),
+      r.responsable,r.fecha_captura,r.observaciones||'',r.precision_gps_m??'',
+      r.area_ha!=null?r.area_ha.toFixed(4):'',e,n,wkt2203(r),(r.fotos||[]).map(f=>f.nombre).join(';')]);
+  }
+  return '\uFEFF'+rows.map(r=>r.map(csvEsc).join(',')).join('\r\n');
+}
+function buildRecordDXF(r){
+  if(r.geometria.tipo!=='poligono') return null;
+  const pts=r.geometria.pts2203.map(p=>({x:p[0],y:p[1]}));
+  const sides=computeSideData(pts);
+  const t=new Date();
+  const meta={zone:20,isNorth:true,
+    fechaStr:`${pad2(t.getDate())}/${pad2(t.getMonth()+1)}/${t.getFullYear()}`,
+    areaStr:`${(r.area_ha||0).toFixed(4)} ha.`,
+    rotulo:{localidad:r.cod_comuna||'', propietario:r.campos.nombre||r.codigo,
+      escala:'', levanto:r.responsable||'', calculo:r.responsable||'', dibujo:r.responsable||'', hoja:''}};
+  return latin1Bytes(buildDxf(pts,sides,meta));
+}
+async function recordFiles(r){
+  const files=[];
+  const gj=new Blob([JSON.stringify(buildGeoJSON([r]),null,1)],{type:'application/geo+json'});
+  files.push({name:`${r.codigo}_${r.categoria}_${stamp()}.geojson`,blob:gj,type:'application/geo+json'});
+  const dxf=buildRecordDXF(r);
+  if(dxf) files.push({name:`${r.codigo}_plano_${stamp()}.dxf`,blob:new Blob([dxf],{type:'application/dxf'}),type:'application/dxf'});
+  for(const f of (r.fotos||[])){
+    const fr=await dbGet('fotos',f.id);
+    if(fr) files.push({name:fr.nombre,blob:fr.blob,type:'image/jpeg'});
+  }
+  return files;
+}
+async function exportRecords(records){
+  if(!records.length){ alert('No hay registros para exportar.'); return; }
+  const st=stamp();
+  downloadBlob(new Blob([JSON.stringify(buildGeoJSON(records),null,1)],{type:'application/geo+json'}),`geocomunas_${st}.geojson`);
+  downloadBlob(new Blob([buildCSV(records)],{type:'text/csv;charset=utf-8'}),`geocomunas_${st}.csv`);
+  for(const r of records){
+    const dxf=buildRecordDXF(r);
+    if(dxf) downloadBlob(new Blob([dxf],{type:'application/dxf'}),`${r.codigo}_plano_${st}.dxf`);
+    for(const f of (r.fotos||[])){
+      const fr=await dbGet('fotos',f.id);
+      if(fr) downloadBlob(fr.blob,fr.nombre);
+    }
+  }
+}
+async function shareRecords(records){
+  if(!records.length){ alert('No hay registros para compartir.'); return; }
+  const st=stamp();
+  const files=[];
+  files.push(new File([JSON.stringify(buildGeoJSON(records),null,1)],`geocomunas_${st}.geojson`,{type:'application/geo+json'}));
+  files.push(new File([buildCSV(records)],`geocomunas_${st}.csv`,{type:'text/csv'}));
+  for(const r of records){
+    const dxf=buildRecordDXF(r);
+    if(dxf) files.push(new File([dxf],`${r.codigo}_plano_${st}.dxf`,{type:'application/dxf'}));
+    for(const f of (r.fotos||[])){
+      const fr=await dbGet('fotos',f.id);
+      if(fr) files.push(new File([fr.blob],fr.nombre,{type:'image/jpeg'}));
+    }
+  }
+  let shared=false;
+  if(navigator.canShare){
+    try{
+      if(navigator.canShare({files})){
+        await navigator.share({files,title:'GeoComunas — registros de campo',text:`${records.length} registro(s) de campo · GeoComunas`});
+        shared=true;
+      }
+    }catch(err){ if(err&&err.name==='AbortError') shared=true; }
+  }
+  if(shared){
+    for(const r of records){ r.estado_envio='enviado'; await dbPut('registros',r); }
+    renderGallery();
+  } else {
+    // Fallback: descargas individuales
+    for(const f of files) downloadBlob(f,f.name);
+    alert('Tu navegador no permite compartir archivos directamente: se descargaron para adjuntarlos manualmente.');
+  }
+}
+$('btnExportAll').onclick=async()=>exportRecords(await dbAll('registros'));
+$('btnShareAll').onclick=async()=>shareRecords(await dbAll('registros'));
+
+/* ---------- Exportar por categoría (trivial: filtra y exporta) ---------- */
+async function exportByCategory(catId){
+  const regs=await dbByIndex('registros','categoria',catId);
+  const cat=catById(catId);
+  if(!regs.length){ alert('Sin registros de '+(cat?cat.etiqueta:catId)); return; }
+  downloadBlob(new Blob([JSON.stringify(buildGeoJSON(regs),null,1)],{type:'application/geo+json'}),
+    `geocomunas_${catId}_${stamp()}.geojson`);
+}
+</script>
+<script>
+/* ---------- Teselas offline: "Preparar salida" ---------- */
+let tileMap=null, sectorRect=null, cornerA=null, cornerB=null, sectorBounds=null, marking=null, tileCancel=false;
+
+function lonLatToTile(lon,lat,z){
+  const n=Math.pow(2,z);
+  const x=Math.floor((lon+180)/360*n);
+  const lr=lat*Math.PI/180;
+  const y=Math.floor((1-Math.log(Math.tan(lr)+1/Math.cos(lr))/Math.PI)/2*n);
+  return {x:Math.min(Math.max(x,0),n-1), y:Math.min(Math.max(y,0),n-1)};
+}
+function tileRange(bounds,zmin,zmax){
+  let count=0;
+  for(let z=zmin;z<=zmax;z++){
+    const sw=lonLatToTile(bounds.getWest(),bounds.getSouth(),z);
+    const ne=lonLatToTile(bounds.getEast(),bounds.getNorth(),z);
+    count+=(ne.x-sw.x+1)*(sw.y-ne.y+1);
+  }
+  return count;
+}
+function initTileMap(){
+  if(tileMap){ setTimeout(()=>tileMap.invalidateSize(),100); return; }
+  tileMap=L.map('tileMap').setView([9.74,-63.18],11);
+  baseLayer().addTo(tileMap);
+  const zs=$('tileZmin'), ze=$('tileZmax');
+  if(!zs.options.length){
+    for(let z=10;z<=17;z++){ zs.add(new Option('z'+z,z)); ze.add(new Option('z'+z,z)); }
+    zs.value=12; ze.value=16;
+  }
+  tileMap.on('click',e=>{
+    if(marking==='A'){ cornerA=e.latlng; marking=null; setStatus($('tileEstimate'),'Esquina A marcada. Ahora toca «② Marcar esquina B» y luego un punto opuesto.',''); }
+    else if(marking==='B'){ cornerB=e.latlng; marking=null; drawSector(); }
+  });
+  renderTilePackages();
+}
+$('btnSectorA').onclick=()=>{ marking='A'; setStatus($('tileEstimate'),'Toca en el mapa la primera esquina del sector.',''); };
+$('btnSectorB').onclick=()=>{ if(!cornerA){ setStatus($('tileEstimate'),'Primero marca la esquina A.','err'); return; } marking='B'; setStatus($('tileEstimate'),'Toca en el mapa la esquina opuesta del sector.',''); };
+$('btnSectorView').onclick=()=>{ sectorBounds=tileMap.getBounds(); drawSector(); };
+$('btnSectorClear').onclick=()=>{
+  if(tileMap&&sectorRect){ tileMap.removeLayer(sectorRect); sectorRect=null; }
+  cornerA=null; cornerB=null; sectorBounds=null; marking=null;
+  setStatus($('tileEstimate'),'Rectángulo borrado. Marca de nuevo las esquinas A y B, o usa la vista actual.','');
+};
+function drawSector(){
+  if(cornerA&&cornerB) sectorBounds=L.latLngBounds(cornerA,cornerB);
+  if(!sectorBounds) return;
+  if(sectorRect) tileMap.removeLayer(sectorRect);
+  sectorRect=L.rectangle(sectorBounds,{color:'#22c55e',weight:2,fillOpacity:.08}).addTo(tileMap);
+  tileMap.fitBounds(sectorBounds,{padding:[20,20]});
+  estimateTiles();
+}
+function estimateTiles(){
+  if(!sectorBounds) return;
+  const zmin=+$('tileZmin').value, zmax=+$('tileZmax').value;
+  const n=tileRange(sectorBounds,zmin,zmax);
+  const mb=(n*30/1024).toFixed(1);
+  setStatus($('tileEstimate'),`≈ ${n.toLocaleString('es')} teselas · ≈ ${mb} MB (estimado, z${zmin}–z${zmax}).`+(n>20000?' ⚠️ Paquete muy grande: reduce el área o el zoom máximo.':''), n>20000?'err':'');
+}
+$('tileZmin').onchange=estimateTiles; $('tileZmax').onchange=estimateTiles;
+
+$('btnTileDownload').onclick=async()=>{
+  const nombre=$('tileSectorName').value.trim();
+  if(!nombre){ setStatus($('tileEstimate'),'Ponle un nombre al paquete. Ej.: Sector El Porvenir.','err'); $('tileSectorName').focus(); return; }
+  if(!sectorBounds){ setStatus($('tileEstimate'),'Marca el sector en el mapa primero.','err'); return; }
+  if(!navigator.onLine){ setStatus($('tileEstimate'),'Sin conexión: la descarga necesita internet.','err'); return; }
+  const zmin=+$('tileZmin').value, zmax=+$('tileZmax').value;
+  const total=tileRange(sectorBounds,zmin,zmax);
+  if(total>20000 && !confirm(`El paquete tiene ≈${total.toLocaleString('es')} teselas. ¿Descargar de todos modos?`)) return;
+  tileCancel=false;
+  $('btnTileCancel').style.display=''; $('tileProgWrap').style.display='block';
+  setStatus($('tileEstimate'),'Descargando teselas… no cierres la pantalla.');
+  let done=0;
+  try{
+    for(let z=zmin;z<=zmax&&!tileCancel;z++){
+      const sw=lonLatToTile(sectorBounds.getWest(),sectorBounds.getSouth(),z);
+      const ne=lonLatToTile(sectorBounds.getEast(),sectorBounds.getNorth(),z);
+      for(let x=sw.x;x<=ne.x&&!tileCancel;x++){
+        for(let y=ne.y;y<=sw.y&&!tileCancel;y++){
+          const key=`${nombre}/${z}/${x}/${y}`;
+          if(!(await dbGet('teselas',key))){
+            const url=TILE_URL.replace('{z}',z).replace('{y}',y).replace('{x}',x);
+            const r=await fetch(url);
+            if(r.ok){ const blob=await r.blob(); await dbPut('teselas',{key,sector:nombre,z,x,y,blob}); }
+          }
+          done++;
+          if(done%10===0){ $('tileProg').style.width=(100*done/total).toFixed(1)+'%'; await new Promise(r=>setTimeout(r,0)); }
+        }
+      }
+    }
+  }catch(err){ setStatus($('tileEstimate'),'Descarga interrumpida: '+err.message,'err'); }
+  $('tileProg').style.width='100%';
+  $('btnTileCancel').style.display='none';
+  if(!tileCancel){
+    await dbPut('sectores',{nombre,zmin,zmax,fecha:hoyISO(),n:done,
+      bounds:[[sectorBounds.getSouth(),sectorBounds.getWest()],[sectorBounds.getNorth(),sectorBounds.getEast()]]});
+    setStatus($('tileEstimate'),`✔ Paquete «${nombre}» listo: ${done} teselas. Actívalo abajo para usarlo en campo.`,'locked');
+  } else setStatus($('tileEstimate'),'Descarga cancelada.','err');
+  renderTilePackages();
+};
+$('btnTileCancel').onclick=()=>{ tileCancel=true; };
+
+async function renderTilePackages(){
+  const secs=await dbAll('sectores');
+  const activo=await getSetting('sector_activo','');
+  $('tilePackages').innerHTML=secs.length?secs.map(s=>
+    `<div class="galitem"><div class="h"><span class="code">🛰️ ${esc(s.nombre)}</span>
+     ${activo===s.nombre?'<span class="badge env">ACTIVO</span>':''}</div>
+     <div class="meta">${s.n} teselas · z${s.zmin}–z${s.zmax} · ${esc(s.fecha)}</div>
+     <div class="btnrow">
+       <button class="btn sm" data-s="use" data-n="${esc(s.nombre)}">✔ Usar en campo</button>
+       <button class="btn sm warnb" data-s="del" data-n="${esc(s.nombre)}">🗑 Borrar</button>
+     </div></div>`).join('')
+    :'<div class="sub">Aún no hay paquetes. Descarga el primero arriba.</div>';
+  $('tilePackages').querySelectorAll('button').forEach(b=>b.onclick=async()=>{
+    const n=b.dataset.n;
+    if(b.dataset.s==='use'){ await setSetting('sector_activo',n); renderTilePackages(); }
+    else if(confirm(`¿Borrar el paquete «${n}» y sus teselas?`)){
+      const tiles=await dbByIndex('teselas','sector',n);
+      for(const t of tiles) await dbDel('teselas',t.key);
+      await dbDel('sectores',n);
+      if((await getSetting('sector_activo',''))===n) await setSetting('sector_activo','');
+      renderTilePackages();
+    }
+  });
+}
+
+/* ---------- Capa base: online u offline según paquete activo ---------- */
+L.IDBTileLayer=L.TileLayer.extend({
+  createTile(coords,done){
+    const tile=document.createElement('img');
+    tile.setAttribute('role','presentation'); tile.alt='';
+    const key=`${this.options.sector}/${coords.z}/${coords.x}/${coords.y}`;
+    dbGet('teselas',key).then(rec=>{
+      tile.src=rec&&rec.blob?URL.createObjectURL(rec.blob):L.Util.emptyImageUrl;
+      done(null,tile);
+    }).catch(()=>{ tile.src=L.Util.emptyImageUrl; done(null,tile); });
+    return tile;
+  }
+});
+async function applyBaseLayer(map){
+  const sector=await getSetting('sector_activo','');
+  if(map._base){ map.removeLayer(map._base); map._base=null; }
+  if(sector){
+    const n=(await dbByIndex('teselas','sector',sector)).length;
+    if(n>0){ map._base=new L.IDBTileLayer('',{sector,maxZoom:19,attribution:TILE_ATTRIB+' · offline: '+sector}).addTo(map); return; }
+  }
+  map._base=baseLayer().addTo(map);
+}
+</script>
+<script>
+/* ---------- Calculadora de áreas (funciones originales de la app génesis) ----------
+   Flujo GPS por vértice con getCurrentPosition de alta precisión e indicador de
+   calidad (≤5/15/30 m); planilla manual UTM (huso 1–60, hemisferio, 3–200 vértices,
+   Este/Norte por fila con validación); cálculo por Shoelace sobre UTM; CSV de
+   vértices; plano DXF con el escritor propio embebido; Web Share→WhatsApp
+   con fallback a descarga. */
+let calcPts=[], calcBusy=false, calcMap=null, calcLayer=null, calcMarkers=[], calcAreaM2=0;
+let calcManualInfo=null; // {zone,isNorth} cuando el polígono viene de la planilla manual
+let calcRefZone=null;    // huso/hemisferio de referencia (primer vértice GPS) para el cálculo planar
+
+function calcUtmProjString(zone,isNorth){ return `+proj=utm +zone=${zone} ${isNorth?'':'+south '}+ellps=WGS84 +datum=WGS84 +units=m +no_defs`; }
+function calcToUTM(lat,lon){
+  const zone=Math.floor((lon+180)/6)+1, isNorth=lat>=0;
+  const [x,y]=proj4('WGS84',calcUtmProjString(zone,isNorth),[lon,lat]);
+  return {zone,hemi:isNorth?'N':'S',easting:x,northing:y};
+}
+function calcToUTMFixedZone(lat,lon){
+  if(!calcRefZone) calcRefZone={zone:Math.floor((lon+180)/6)+1,isNorth:lat>=0};
+  const [x,y]=proj4('WGS84',calcUtmProjString(calcRefZone.zone,calcRefZone.isNorth),[lon,lat]);
+  return {x,y};
+}
+function calcShoelace(pts){
+  let sum=0; const n=pts.length;
+  for(let i=0;i<n;i++){ const j=(i+1)%n; sum+=pts[i].x*pts[j].y-pts[j].x*pts[i].y; }
+  return Math.abs(sum)/2; // m²
+}
+function calcComputeAreaM2(){
+  if(calcPts.length<3) return 0;
+  const allManual=calcPts.every(p=>p.e!==undefined);
+  const planar=allManual?calcPts.map(p=>({x:p.e,y:p.n})):calcPts.map(p=>calcToUTMFixedZone(p.lat,p.lon));
+  return calcShoelace(planar);
+}
+function calcPointUTMForCsv(p){
+  return (p.e!==undefined&&calcManualInfo)
+    ? {zone:calcManualInfo.zone,hemi:calcManualInfo.isNorth?'N':'S',easting:p.e,northing:p.n}
+    : calcToUTM(p.lat,p.lon);
+}
+function fmtUTMCalc(u){ return `${u.zone}${u.hemi}  E:${u.easting.toFixed(1)}  N:${u.northing.toFixed(1)}`; }
+
+function resetCalcManual(){
+  $('calcTableWrap').style.display='none'; $('calcTableBody').innerHTML='';
+  $('calcZone').value=''; $('calcHemi').value='N'; $('calcCount').value='';
+  $('calcZone').disabled=false; $('calcHemi').disabled=false; $('calcCount').disabled=false;
+  $('btnCalcGenTable').disabled=false;
+  const m=$('calcManualMsg'); m.textContent=''; m.className='status'; m.style.display='none';
+}
+function resetCalcState(){
+  calcPts=[]; calcRefZone=null; calcManualInfo=null;
+  resetCalcManual(); renderCalcList(); $('calcResultCard').style.display='none';
+}
+$('btnGoCalc').onclick=()=>{ resetCalcState(); setStatus($('calcStatus'),'Toca «Grabar punto aquí» en cada vértice.',''); showScreen('screenCalc'); };
+$('btnCalcGps').onclick=()=>{ $('calcGpsBlock').style.display='block'; $('calcManualBlock').style.display='none'; setStatus($('calcStatus'),'Toca «Grabar punto aquí» en cada vértice.',''); };
+$('btnCalcManual').onclick=()=>{ $('calcManualBlock').style.display='block'; $('calcGpsBlock').style.display='none'; resetCalcManual(); setStatus($('calcStatus'),'Indica huso, hemisferio y número de vértices para generar la planilla.',''); };
+
+function renderCalcList(){
+  const el=$('calcPtList');
+  el.innerHTML=calcPts.length?calcPts.map((p,i)=>{
+    const u=calcToUTM(p.lat,p.lon);
+    const t=p.acc!==undefined?qualityTier(p.acc):null;
+    const q=t?` · ±${p.acc.toFixed(1)} m <span class="qtag ${t.cls}">(${t.label.toLowerCase()})</span>`:'';
+    return `<div><span class="pt-idx">V${i+1}</span> ${p.lat.toFixed(5)}, ${p.lon.toFixed(5)} — ${fmtUTMCalc(u)}${q}</div>`;
+  }).join(''):'<div style="color:var(--muted)">Sin puntos aún.</div>';
+}
+$('btnCalcRecord').onclick=()=>{
+  if(calcBusy) return;
+  if(!navigator.geolocation){ setStatus($('calcStatus'),'Este navegador no soporta geolocalización.','err'); return; }
+  calcBusy=true; $('btnCalcRecord').disabled=true;
+  const next=calcPts.length+1;
+  setStatus($('calcStatus'),`Buscando señal GPS para el vértice ${next}…`,'');
+  // Lectura cruda e independiente por vértice (sin promediar): cada vértice
+  // representa una medición GPS real en ese punto exacto del terreno.
+  navigator.geolocation.getCurrentPosition(pos=>{
+    const {latitude,longitude,accuracy}=pos.coords;
+    calcPts.push({lat:latitude,lon:longitude,acc:accuracy});
+    renderCalcList();
+    const t=qualityTier(accuracy);
+    setStatus($('calcStatus'),`Vértice ${calcPts.length} grabado (± ${accuracy.toFixed(1)} m, ${t.label.toLowerCase()}).`,'locked');
+    calcBusy=false; $('btnCalcRecord').disabled=false;
+  },err=>{ setStatus($('calcStatus'),'No se pudo obtener la ubicación: '+err.message,'err'); calcBusy=false; $('btnCalcRecord').disabled=false; },
+  {enableHighAccuracy:true,timeout:15000,maximumAge:0});
+};
+$('btnCalcUndo').onclick=()=>{ calcPts.pop(); renderCalcList(); };
+$('btnCalcFinish').onclick=()=>{
+  if(calcPts.length<3){ setStatus($('calcStatus'),`Graba al menos ${3-calcPts.length} punto(s) más antes de finalizar (mínimo 3 vértices).`,'err'); return; }
+  calcFinish();
+};
+
+function calcSetManualMsg(text,kind){
+  const m=$('calcManualMsg');
+  m.textContent=text||''; m.className='status'+(kind?' '+kind:''); m.style.display=text?'block':'none';
+  if(text) setStatus($('calcStatus'),text,kind==='err'?'err':'');
+}
+$('btnCalcGenTable').onclick=()=>{
+  const zone=parseInt($('calcZone').value,10), count=parseInt($('calcCount').value,10);
+  if(!zone||zone<1||zone>60){ calcSetManualMsg('Ingresa un huso UTM válido (1 a 60) antes de generar la planilla.','err'); $('calcZone').focus(); return; }
+  if(!count||count<3){ calcSetManualMsg('Indica el número de vértices del polígono (mínimo 3).','err'); $('calcCount').focus(); return; }
+  if(count>200){ calcSetManualMsg('Máximo 200 vértices por planilla.','err'); $('calcCount').focus(); return; }
+  const tb=$('calcTableBody'); tb.innerHTML='';
+  for(let i=1;i<=count;i++){
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td class="ptCell">P${i}</td><td><input type="number" step="any" class="utmE" inputmode="decimal" placeholder="Este"></td><td><input type="number" step="any" class="utmN" inputmode="decimal" placeholder="Norte"></td>`;
+    tb.appendChild(tr);
+  }
+  $('calcTableWrap').style.display='block';
+  $('calcZone').disabled=true; $('calcHemi').disabled=true; $('calcCount').disabled=true; $('btnCalcGenTable').disabled=true;
+  calcSetManualMsg(`Planilla generada: completa Este y Norte para los ${count} vértices.`,'');
+};
+$('btnCalcManualCancel').onclick=resetCalcManual;
+$('btnCalcManualGo').onclick=()=>{
+  const zone=parseInt($('calcZone').value,10), isNorth=$('calcHemi').value==='N';
+  const rows=Array.from($('calcTableBody').querySelectorAll('tr'));
+  const pts=[];
+  for(const tr of rows){
+    const eI=tr.querySelector('.utmE'), nI=tr.querySelector('.utmN');
+    const e=parseFloat(eI.value), n=parseFloat(nI.value);
+    if(!isFinite(e)||!isFinite(n)){ eI.classList.add('bad'); nI.classList.add('bad'); calcSetManualMsg('Completa Este y Norte en todos los vértices (valores numéricos).','err'); return; }
+    eI.classList.remove('bad'); nI.classList.remove('bad');
+    const [lon,lat]=proj4(calcUtmProjString(zone,isNorth),'WGS84',[e,n]);
+    pts.push({lat,lon,e,n});
+  }
+  calcPts=pts; calcManualInfo={zone,isNorth}; calcRefZone=null;
+  renderCalcList(); calcFinish();
+};
+
+function calcFinish(){
+  calcAreaM2=calcComputeAreaM2();
+  $('calcArea').textContent=`${calcAreaM2.toFixed(1)} m² · ${(calcAreaM2/10000).toFixed(4)} ha · ${(calcAreaM2/1000000).toFixed(6)} km²`;
+  $('calcN').textContent=calcPts.length+' vértices · '+(calcManualInfo?`huso ${calcManualInfo.zone}${calcManualInfo.isNorth?'N':'S'}`:'EPSG:2203');
+  $('calcResultCard').style.display='block';
+  if(!calcMap){ calcMap=L.map('calcMap'); calcMap._base=baseLayer().addTo(calcMap); }
+  if(calcLayer) calcMap.removeLayer(calcLayer);
+  calcMarkers.forEach(m=>calcMap.removeLayer(m)); calcMarkers=[];
+  const ll=calcPts.map(p=>[p.lat,p.lon]);
+  calcLayer=L.polygon(ll,{color:'#ff2020',weight:3,fillColor:'#ff2020',fillOpacity:0.35}).addTo(calcMap);
+  calcPts.forEach(p=>{ const m=L.circleMarker([p.lat,p.lon],{radius:5,color:'#ffffff',weight:2,fillColor:'#ff2020',fillOpacity:1}).addTo(calcMap); calcMarkers.push(m); });
+  // El contenedor estaba oculto: Leaflet necesita invalidateSize() con tamaño real.
+  requestAnimationFrame(()=>{ calcMap.invalidateSize(); calcMap.fitBounds(calcLayer.getBounds(),{padding:[24,24]}); });
+  $('calcResultCard').scrollIntoView({behavior:'smooth'});
+}
+function calcCsvEsc(v){ const s=String(v); return /[",;\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s; }
+$('btnCalcCsv').onclick=()=>{
+  const rows=[['Punto','Latitud','Longitud','Huso','Hemisferio','Este_X','Norte_Y','Precision_m']];
+  calcPts.forEach((p,i)=>{
+    const u=calcPointUTMForCsv(p);
+    rows.push(['P'+(i+1),p.lat.toFixed(6),p.lon.toFixed(6),u.zone,u.hemi,u.easting.toFixed(2),u.northing.toFixed(2),p.acc!==undefined?p.acc.toFixed(1):'']);
+  });
+  rows.push([]); rows.push(['Resumen']); rows.push(['Vertices',calcPts.length]);
+  rows.push(['Area_m2',calcAreaM2.toFixed(1)]); rows.push(['Area_ha',(calcAreaM2/10000).toFixed(4)]); rows.push(['Area_km2',(calcAreaM2/1000000).toFixed(6)]);
+  downloadBlob(new Blob(['﻿'+rows.map(r=>r.map(calcCsvEsc).join(',')).join('\r\n')],{type:'text/csv;charset=utf-8;'}),`area_${stamp()}.csv`);
+};
+function calcDXFBlob(){
+  const en=calcPts.map(p=>p.e!==undefined?{x:p.e,y:p.n}:(()=>{const u=calcToUTMFixedZone(p.lat,p.lon);return {x:u.x,y:u.y};})());
+  const sides=computeSideData(en);
+  const t=new Date(), mi=calcManualInfo||{zone:20,isNorth:true};
+  const meta={zone:mi.zone,isNorth:mi.isNorth,fechaStr:`${pad2(t.getDate())}/${pad2(t.getMonth()+1)}/${t.getFullYear()}`,
+    areaStr:`${(calcAreaM2/10000).toFixed(4)} ha.`,
+    rotulo:{localidad:'',propietario:'',escala:'',levanto:'',calculo:'',dibujo:'',hoja:''}};
+  return new Blob([latin1Bytes(buildDxf(en,sides,meta))],{type:'application/dxf'});
+}
+$('btnCalcDxf').onclick=()=>downloadBlob(calcDXFBlob(),`area_plano_${stamp()}.dxf`);
+$('btnCalcShare').onclick=async()=>{
+  const filename=`area_plano_${stamp()}.dxf`, blob=calcDXFBlob();
+  // Panel nativo de compartir (WhatsApp, email…) cuando el navegador lo soporta;
+  // si no, descarga directa. No se promete "la app lo envía por ti".
+  let shared=false;
+  if(navigator.canShare&&window.File){
+    try{
+      const file=new File([blob],filename,{type:'application/dxf'});
+      if(navigator.canShare({files:[file]})){
+        await navigator.share({files:[file],title:'GeoComunas — plano de área',text:'Plano generado con GeoComunas'});
+        shared=true;
+      }
+    }catch(err){ if(err&&err.name==='AbortError') shared=true; } // el usuario cerró el panel: no forzar descarga
+  }
+  if(!shared) downloadBlob(blob,filename);
+};
+$('btnCalcNew').onclick=()=>{ resetCalcState(); setStatus($('calcStatus'),'Toca «Grabar punto aquí» en cada vértice.',''); };
+
+
+/* ---------- Ajustes ---------- */
+$('btnGoSettings').onclick=async()=>{ $('setResponsable').value=await getSetting('responsable',''); showScreen('screenSettings'); };
+$('btnSaveSettings').onclick=async()=>{ await setSetting('responsable',$('setResponsable').value.trim()); alert('✔ Ajustes guardados.'); };
+
+/* ---------- Init ---------- */
+window.addEventListener('DOMContentLoaded',async()=>{
+  document.querySelector('.foot').style.display='none'; // la portada es la primera pantalla
+  try{ await loadCats(); }
+  catch(e){ document.body.insertAdjacentHTML('afterbegin','<div style="padding:10px 14px;color:var(--muted);font-size:13px">⚠️ No se pudieron cargar las categorías. Revisa tu conexión o reinstala la app.</div>'); return; }
+  renderCatGrid();
+  await refreshHome();
+  if('serviceWorker' in navigator && location.protocol.startsWith('http')){
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  }
+});
+</script>
+</body>
+</html>
