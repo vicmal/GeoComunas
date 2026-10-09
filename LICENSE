@@ -1,0 +1,64 @@
+LICENCIA DE USO — GEOCOMUNAS
+================================
+
+© 2026 Víctor Hugo Malavé Girón (github.com/vicmal). Todos los derechos reservados.
+
+
+1. OBJETO
+
+Esta licencia regula el uso del código fuente y los archivos de la
+aplicación "GeoComunas — Captura de campo para el SIG de las Comunas
+de Monagas" (el "Software"), publicados en el repositorio público
+https://github.com/vicmal/GeoComunas
+
+El hecho de que el código sea visible públicamente (requerido por el
+alojamiento gratuito en GitHub Pages) no implica cesión de derechos.
+
+
+2. USOS PERMITIDOS SIN AUTORIZACIÓN PREVIA
+
+Sin necesidad de contrato previo, se permite:
+
+  a) Ver, descargar y estudiar el código fuente.
+  b) Usar la aplicación con fines personales, académicos o de evaluación.
+  c) Citar y referenciar el Software en trabajos académicos, con atribución.
+
+
+3. USOS QUE REQUIEREN CONTRATO
+
+El uso del Software por parte de instituciones públicas o privadas,
+empresas u organizaciones —incluyendo su despliegue operativo, su
+incorporación a sistemas institucionales y su uso en campo por personal
+propio o contratado— requiere un acuerdo escrito previo con el titular
+de los derechos.
+
+A modo de ejemplo: el Ministerio del Poder Popular para las Comunas y
+los Movimientos Sociales, gobernaciones, alcaldías y demás entes
+interesados deberán suscribir dicho acuerdo para el uso institucional
+del Software, incluyendo su configuración por municipio, capacitación
+de operadores, soporte y mantenimiento.
+
+
+4. RESTRICCIONES
+
+Sin el acuerdo escrito mencionado en el punto 3, no está permitido:
+
+  a) Redistribuir versiones modificadas del Software para uso
+     institucional o comercial.
+  b) Ofrecer el Software, modificado o no, como parte de un servicio
+     contratado por terceros.
+  c) Eliminar o alterar los avisos de autoría.
+
+
+5. GARANTÍA
+
+El Software se entrega "TAL CUAL", sin garantías de ningún tipo,
+expresas o implícitas. El titular no será responsable por daños
+directos o indirectos derivados de su uso.
+
+
+6. ATRIBUCIÓN
+
+Todo uso permitido deberá conservar el aviso de autoría:
+
+    GeoComunas © 2026 Víctor Hugo Malavé Girón — github.com/vicmal/GeoComunas

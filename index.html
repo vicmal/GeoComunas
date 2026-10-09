@@ -274,7 +274,15 @@ details.help summary{cursor:pointer;color:#7dd3fc;font-weight:600}
   <div class="card" id="calcResultCard" style="display:none">
     <h2 style="margin-top:0">Resultado</h2>
     <dl class="kv"><dt>Área</dt><dd><b id="calcArea">—</b></dd><dt>Vértices</dt><dd id="calcN">—</dd></dl>
+    <div class="status" id="calcOfflineMsg" style="display:none">Sin conexión: el fondo satelital no cargará, pero el cálculo y la descarga del DXF funcionan con normalidad.</div>
     <div id="calcMap" style="height:40vh;min-height:260px;border-radius:12px;border:1px solid var(--line2)"></div>
+    <div style="margin-top:10px;border-top:1px solid var(--line2);padding-top:8px">
+      <div class="sub" style="margin:0 0 6px">Rótulo del plano DXF <span style="color:var(--muted)">(opcional — la fecha se toma de hoy automáticamente)</span></div>
+      <div class="grid2">
+        <div><label class="f"><b>Propietario</b></label><input id="calcPropietario" placeholder="Nombre del propietario"></div>
+        <div><label class="f"><b>Localidad</b></label><input id="calcLocalidad" placeholder="Localidad / comuna"></div>
+      </div>
+    </div>
     <div class="btnrow" style="margin-top:8px">
       <button class="btn sm" id="btnCalcCsv">⬇ CSV</button>
       <button class="btn sm" id="btnCalcDxf">📐 DXF</button>
@@ -1137,22 +1145,33 @@ function renderCalcList(){
   }).join(''):'<div style="color:var(--muted)">Sin puntos aún.</div>';
 }
 $('btnCalcRecord').onclick=()=>{
-  if(calcBusy) return;
-  if(!navigator.geolocation){ setStatus($('calcStatus'),'Este navegador no soporta geolocalización.','err'); return; }
-  calcBusy=true; $('btnCalcRecord').disabled=true;
-  const next=calcPts.length+1;
-  setStatus($('calcStatus'),`Buscando señal GPS para el vértice ${next}…`,'');
-  // Lectura cruda e independiente por vértice (sin promediar): cada vértice
-  // representa una medición GPS real en ese punto exacto del terreno.
-  navigator.geolocation.getCurrentPosition(pos=>{
-    const {latitude,longitude,accuracy}=pos.coords;
-    calcPts.push({lat:latitude,lon:longitude,acc:accuracy});
-    renderCalcList();
-    const t=qualityTier(accuracy);
-    setStatus($('calcStatus'),`Vértice ${calcPts.length} grabado (± ${accuracy.toFixed(1)} m, ${t.label.toLowerCase()}).`,'locked');
+  try{
+    if(calcBusy) return;
+    if(!navigator.geolocation){ setStatus($('calcStatus'),'Este navegador no soporta geolocalización.','err'); return; }
+    calcBusy=true; $('btnCalcRecord').disabled=true;
+    const next=calcPts.length+1;
+    setStatus($('calcStatus'),`Buscando señal GPS para el vértice ${next}…`,'');
+    // Lectura cruda e independiente por vértice (sin promediar): cada vértice
+    // representa una medición GPS real en ese punto exacto del terreno.
+    // La llamada al GPS es idéntica a la de la app génesis por diseño.
+    navigator.geolocation.getCurrentPosition(pos=>{
+      try{
+        const {latitude,longitude,accuracy}=pos.coords;
+        calcPts.push({lat:latitude,lon:longitude,acc:accuracy});
+        renderCalcList();
+        const t=qualityTier(accuracy);
+        setStatus($('calcStatus'),`Vértice ${calcPts.length} grabado (± ${accuracy.toFixed(1)} m, ${t.label.toLowerCase()}).`,'locked');
+      }catch(err){
+        setStatus($('calcStatus'),'Error interno al grabar el vértice: '+(err&&err.message?err.message:err),'err');
+      }finally{
+        calcBusy=false; $('btnCalcRecord').disabled=false;
+      }
+    },err=>{ setStatus($('calcStatus'),'No se pudo obtener la ubicación: '+err.message,'err'); calcBusy=false; $('btnCalcRecord').disabled=false; },
+    {enableHighAccuracy:true,timeout:15000,maximumAge:0});
+  }catch(err){
+    setStatus($('calcStatus'),'Error interno: '+(err&&err.message?err.message:err),'err');
     calcBusy=false; $('btnCalcRecord').disabled=false;
-  },err=>{ setStatus($('calcStatus'),'No se pudo obtener la ubicación: '+err.message,'err'); calcBusy=false; $('btnCalcRecord').disabled=false; },
-  {enableHighAccuracy:true,timeout:15000,maximumAge:0});
+  }
 };
 $('btnCalcUndo').onclick=()=>{ calcPts.pop(); renderCalcList(); };
 $('btnCalcFinish').onclick=()=>{
@@ -1182,26 +1201,44 @@ $('btnCalcGenTable').onclick=()=>{
 };
 $('btnCalcManualCancel').onclick=resetCalcManual;
 $('btnCalcManualGo').onclick=()=>{
-  const zone=parseInt($('calcZone').value,10), isNorth=$('calcHemi').value==='N';
-  const rows=Array.from($('calcTableBody').querySelectorAll('tr'));
-  const pts=[];
-  for(const tr of rows){
-    const eI=tr.querySelector('.utmE'), nI=tr.querySelector('.utmN');
-    const e=parseFloat(eI.value), n=parseFloat(nI.value);
-    if(!isFinite(e)||!isFinite(n)){ eI.classList.add('bad'); nI.classList.add('bad'); calcSetManualMsg('Completa Este y Norte en todos los vértices (valores numéricos).','err'); return; }
-    eI.classList.remove('bad'); nI.classList.remove('bad');
-    const [lon,lat]=proj4(calcUtmProjString(zone,isNorth),'WGS84',[e,n]);
-    pts.push({lat,lon,e,n});
+  try{
+    const zone=parseInt($('calcZone').value,10), isNorth=$('calcHemi').value==='N';
+    const rows=Array.from($('calcTableBody').querySelectorAll('tr'));
+    const pts=[];
+    for(const tr of rows){
+      const eI=tr.querySelector('.utmE'), nI=tr.querySelector('.utmN');
+      const e=parseFloat(eI.value), n=parseFloat(nI.value);
+      if(!isFinite(e)||!isFinite(n)){ eI.classList.add('bad'); nI.classList.add('bad'); calcSetManualMsg('Completa Este y Norte en todos los vértices (valores numéricos).','err'); return; }
+      eI.classList.remove('bad'); nI.classList.remove('bad');
+      const [lon,lat]=proj4(calcUtmProjString(zone,isNorth),'WGS84',[e,n]);
+      pts.push({lat,lon,e,n});
+    }
+    calcPts=pts; calcManualInfo={zone,isNorth}; calcRefZone=null;
+    renderCalcList(); calcFinish();
+  }catch(err){
+    // Nunca más un "no pasó nada" silencioso: todo error interno queda visible.
+    calcSetManualMsg('Error interno al calcular: '+(err&&err.message?err.message:err),'err');
   }
-  calcPts=pts; calcManualInfo={zone,isNorth}; calcRefZone=null;
-  renderCalcList(); calcFinish();
 };
+
+function calcRotuloVal(id){ const el=$(id); return el?(el.value||'').trim():''; }
+// Rótulo del plano DXF (calculadora): Propietario y Localidad son opcionales y se
+// persisten en localStorage; la fecha se toma de hoy automáticamente.
+if($('calcPropietario')) $('calcPropietario').addEventListener('input',e=>{ try{localStorage.setItem('gc_calc_propietario',e.target.value);}catch(_){} });
+if($('calcLocalidad')) $('calcLocalidad').addEventListener('input',e=>{ try{localStorage.setItem('gc_calc_localidad',e.target.value);}catch(_){} });
 
 function calcFinish(){
   calcAreaM2=calcComputeAreaM2();
   $('calcArea').textContent=`${calcAreaM2.toFixed(1)} m² · ${(calcAreaM2/10000).toFixed(4)} ha · ${(calcAreaM2/1000000).toFixed(6)} km²`;
   $('calcN').textContent=calcPts.length+' vértices · '+(calcManualInfo?`huso ${calcManualInfo.zone}${calcManualInfo.isNorth?'N':'S'}`:'EPSG:2203');
   $('calcResultCard').style.display='block';
+  // Aviso discreto sin conexión: el fondo satelital no cargará, pero el cálculo y el DXF sí funcionan.
+  $('calcOfflineMsg').style.display=(typeof navigator!=='undefined'&&navigator.onLine===false)?'block':'none';
+  // Recupera los últimos valores del rótulo (persistidos en localStorage).
+  try{
+    $('calcPropietario').value=localStorage.getItem('gc_calc_propietario')||'';
+    $('calcLocalidad').value=localStorage.getItem('gc_calc_localidad')||'';
+  }catch(_){}
   if(!calcMap){ calcMap=L.map('calcMap'); calcMap._base=baseLayer().addTo(calcMap); }
   if(calcLayer) calcMap.removeLayer(calcLayer);
   calcMarkers.forEach(m=>calcMap.removeLayer(m)); calcMarkers=[];
@@ -1229,7 +1266,7 @@ function calcDXFBlob(){
   const t=new Date(), mi=calcManualInfo||{zone:20,isNorth:true};
   const meta={zone:mi.zone,isNorth:mi.isNorth,fechaStr:`${pad2(t.getDate())}/${pad2(t.getMonth()+1)}/${t.getFullYear()}`,
     areaStr:`${(calcAreaM2/10000).toFixed(4)} ha.`,
-    rotulo:{localidad:'',propietario:'',escala:'',levanto:'',calculo:'',dibujo:'',hoja:''}};
+    rotulo:{localidad:calcRotuloVal('calcLocalidad'),propietario:calcRotuloVal('calcPropietario'),escala:'',levanto:'',calculo:'',dibujo:'',hoja:''}};
   return new Blob([latin1Bytes(buildDxf(en,sides,meta))],{type:'application/dxf'});
 }
 $('btnCalcDxf').onclick=()=>downloadBlob(calcDXFBlob(),`area_plano_${stamp()}.dxf`);

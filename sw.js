@@ -1,5 +1,8 @@
-/* GeoComunas — Service Worker v1. App shell offline. */
-const CACHE='geocomunas-v1';
+/* GeoComunas — Service Worker. App shell offline.
+   IMPORTANTE: incrementar el nombre del caché (geocomunas-v2 → v3 → …) en cada
+   release; el SW activa la limpieza del caché anterior, y sin este cambio los
+   teléfonos conservan la versión vieja de la app. */
+const CACHE='geocomunas-v2';
 const SHELL=['index.html','categorias.json','manifest.json','icon.svg',
   'lib/leaflet.js','lib/leaflet.css','lib/proj4.js','js/dxf.js',
   'assets/sello_monagas.png','assets/IMFellEnglish-Regular.woff2','assets/IMFellEnglish-Italic.woff2'];
