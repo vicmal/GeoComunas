@@ -2,8 +2,8 @@
    IMPORTANTE: incrementar el nombre del caché (geocomunas-v2 → v3 → …) en cada
    release; el SW activa la limpieza del caché anterior, y sin este cambio los
    teléfonos conservan la versión vieja de la app. */
-const CACHE='geocomunas-v2';
-const SHELL=['index.html','categorias.json','manifest.json','icon.svg',
+const CACHE='geocomunas-v3';
+const SHELL=['index.html','categorias.json','manifest.json','icon-192.png','icon-512.png',
   'lib/leaflet.js','lib/leaflet.css','lib/proj4.js','js/dxf.js',
   'assets/sello_monagas.png','assets/IMFellEnglish-Regular.woff2','assets/IMFellEnglish-Italic.woff2'];
 self.addEventListener('install',e=>{
